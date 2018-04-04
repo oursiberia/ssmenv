@@ -1,14 +1,19 @@
 import * as AWS from 'aws-sdk';
 import * as LRU from 'lru-cache';
+import { Tag } from './tag';
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: string) => T;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
-/** Type alias for `AWS.SSM.Paramter`. */
-type Parameter = AWS.SSM.Parameter;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
 export type Options = Partial<AWS.SSM.GetParametersByPathRequest>;
+/** Type alias for `AWS.SSM.Paramter`. */
+export type Parameter = AWS.SSM.Parameter;
+/** Type alias for `AWS.SSM.PutParameterRequest`. */
+export type PutRequest = AWS.SSM.PutParameterRequest;
+/** Type alias for `AWS.SSM.PutParameterResult`. */
+export type PutResult = AWS.SSM.PutParameterResult;
 
 /**
  * Structure of an environment variable.
@@ -18,8 +23,12 @@ export interface EnvironmentVariable {
   path: string;
   /** Path of the parameter without environemnt path. */
   key: string;
+  /** Tags applied to the parameter. */
+  tags?: Tag[];
   /** Value of the parameter. */
   value?: string;
+  /** Version of the parameter. */
+  version?: number;
 }
 
 /**
@@ -98,6 +107,41 @@ export class Config {
         ? undefined
         : environmentVariable.value;
     }
+  }
+
+  /**
+   * Push a parameter with value up to the SSM Parameter Store.
+   * @param key of the parameter to be combined with `environment`.
+   * @param value to set.
+   * @param description (optional) description to set on the parameter.
+   * @returns The `EnvironmentVariable` representation of the parameter.
+   */
+  async put(key: string, value: string, description?: string) {
+    const request: PutRequest = {
+      Description: description,
+      Name: `${this.environment}/${key}`,
+      Overwrite: true,
+      Type: 'String',
+      Value: value,
+    };
+    return new Promise<EnvironmentVariable>((resolve, reject) => {
+      this.ssm.putParameter(request, (err: AWS.AWSError, result: PutResult) => {
+        if (err) {
+          reject(err);
+        } else if (result.Version === undefined) {
+          reject(new Error(`No version provided when setting ${request.Name}`));
+        } else {
+          const environmentVariable: EnvironmentVariable = {
+            key,
+            path: request.Name,
+            value,
+            version: result.Version,
+          };
+          this.cache.set(key, environmentVariable);
+          resolve(environmentVariable);
+        }
+      });
+    });
   }
 
   get variables() {
