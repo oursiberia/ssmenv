@@ -1,5 +1,4 @@
 import { Command, flags } from '@oclif/command';
-import { writeFile } from 'fs';
 
 import { getConfig } from '../../conf';
 import { STAGE } from '../../constants';
@@ -42,25 +41,8 @@ export default class EnvDotenv extends Command {
     if (!isReady) {
       throw new Error('Unable to read from parameter store.');
     }
-    const vars = config.variables;
-    const lines = vars.map(
-      envVar => `${envVar.key.toUpperCase()}=${envVar.value}`
-    );
-    const envFile = `.env.${stage}`;
-    await this.writeEnvFile(envFile, lines);
-    this.log(`Environment written to ${envFile}`);
-  }
-
-  writeEnvFile(path: string, lines: string[]): Promise<void> {
-    const content = lines.join('\n');
-    return new Promise((resolve, reject) => {
-      writeFile(path, content, { encoding: 'utf8' }, err => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+    config.variables
+      .map(envVar => `${envVar.key.toUpperCase()}=${envVar.value}`)
+      .forEach(this.log.bind(this));
   }
 }
