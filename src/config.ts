@@ -38,7 +38,7 @@ export class Config {
   /** Whether or not the initial load from AWS was successfully completed. */
   isReady: Promise<boolean>;
   /** The LRU cache used for expiring values. */
-  private cache: LRU.Cache<string, EnvironmentVariable>;
+  private cache: LRU.Cache<string, Parameter>;
   /** The prefix for AWS.SSM.Parameter values, the path to search recursively. */
   private environment: string;
   /** RegExp to find key value at the end of the path (extracting `environment`). */
@@ -102,10 +102,9 @@ export class Config {
         return this.getParam(key);
       });
     } else {
-      const environmentVariable = this.cache.get(key);
-      return environmentVariable === undefined
-        ? undefined
-        : environmentVariable.value;
+      const fqn = this.fqn(key);
+      const parameter = this.cache.get(fqn);
+      return parameter === undefined ? undefined : parameter.Value;
     }
   }
 
@@ -117,9 +116,10 @@ export class Config {
    * @returns The `EnvironmentVariable` representation of the parameter.
    */
   async put(key: string, value: string, description?: string) {
+    const fqn = this.fqn(key);
     const request: PutRequest = {
       Description: description,
-      Name: `${this.environment}/${key}`,
+      Name: fqn,
       Overwrite: true,
       Type: 'String',
       Value: value,
@@ -129,23 +129,27 @@ export class Config {
         if (err) {
           reject(err);
         } else if (result.Version === undefined) {
-          reject(new Error(`No version provided when setting ${request.Name}`));
+          reject(new Error(`No version returned when setting ${fqn}`));
         } else {
-          const environmentVariable: EnvironmentVariable = {
-            key,
-            path: request.Name,
-            value,
-            version: result.Version,
+          const parameter: Parameter = {
+            Name: fqn,
+            Type: request.Type,
+            Value: request.Value,
+            Version: result.Version,
           };
-          this.cache.set(key, environmentVariable);
-          resolve(environmentVariable);
+          this.cache.set(fqn, parameter);
+          resolve(this.toEnvironmentVariable(parameter));
         }
       });
     });
   }
 
-  get variables() {
-    return this.cache.values();
+  /**
+   * Get all the `EnvironmentVariable` instances we know about.
+   * @returns all stored `EnvironmentVariable` instances.
+   */
+  get variables(): EnvironmentVariable[] {
+    return this.cache.values().map(this.toEnvironmentVariable.bind(this));
   }
 
   /**
@@ -175,6 +179,27 @@ export class Config {
   }
 
   /**
+   * The fully qualified name of the parameter based on the config environment
+   * and the `key` provided. The fully qualified name includes the complete
+   * hierarchy of the parameter path and name (`key`). For example:
+   * `/Dev/DBServer/MySQL/db-string13` where `/Dev/DBServer/MySQL` is the
+   * `environment` and `db-string13` is the `key`.
+   *
+   * For information about parameter name requirements and restrictions, see About
+   * Creating Systems Manager Parameters in the AWS Systems Manager User Guide.
+   * The maximum length constraint listed below includes capacity for additional
+   * system attributes that are not part of the name. The maximum length for the
+   * fully qualified parameter name is 1011 characters.
+   * @param key to map to a fully qualified parameter name.
+   * @returns the fully qualified parameter name.
+   * @throws `Error` if `key` or fully qualified name are not valid.
+   */
+  private fqn(key: Key): FQN {
+    const fqn = `${this.environment}/${key}`;
+    return fqn;
+  }
+
+  /**
    * Check that the given `param` has a `Name` defined and a valid `Type`.
    * @param {AWS.SSM.Parameter} param to test
    * @returns `true` if `Name` exists and `Type` is a convertable type, `false`
@@ -193,11 +218,9 @@ export class Config {
    */
   private async refresh(): Promise<void> {
     const parameters = await this.fetch();
-    const variables: EnvironmentVariable[] = parameters
+    parameters
       .filter(this.hasNameAndType.bind(this))
-      .map(this.toEnvironmentVariable.bind(this))
-      .filter(variable => variable !== undefined) as EnvironmentVariable[];
-    variables.forEach(variable => this.cache.set(variable.key, variable));
+      .forEach((param: Parameter) => this.cache.set(param.Name!, param));
   }
 
   /**
