@@ -1,6 +1,5 @@
 import { Command, flags } from '@oclif/command';
-import { writeFile } from 'fs';
-import { Conf } from '../conf';
+import { Conf, writeConfig } from '../conf';
 import {
   ACCESS_KEY_ID,
   DEFAULT_CONFIG_PATH,
@@ -54,18 +53,13 @@ export default class Init extends Command {
     };
 
     const contents = JSON.stringify(config, undefined, 2);
-    const result = new Promise<void>((resolve, reject) => {
-      writeFile(DEFAULT_CONFIG_PATH, contents, err => {
-        if (err) {
-          reject(err);
-        } else {
-          this.log(
-            `Configuration written to ${DEFAULT_CONFIG_PATH}. Please add it to SCM ignore.`
-          );
-          resolve();
-        }
-      });
-    });
+    const result = writeConfig(config, DEFAULT_CONFIG_PATH).then(
+      pathToConfig => {
+        this.log(
+          `Configuration written to ${pathToConfig}. Please add it to SCM ignore.`
+        );
+      }
+    );
     return result;
   }
 }

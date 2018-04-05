@@ -56,20 +56,23 @@ function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH): Promise<Conf> {
   });
 }
 
+/**
+ * Writes the given `config` as JSON to `pathToConfig`.
+ * @param config to write store.
+ * @param pathToConfig filesystem path where the configuration will be written.
+ * @returns the path to which the file was written.
+ */
 export function writeConfig(
   config: Conf,
-  pathToConfig: string = DEFAULT_CONFIG_PATH,
-  log: Log = Fn
+  pathToConfig: string = DEFAULT_CONFIG_PATH
 ) {
-  const result: Promise<void> = new Promise((resolve, reject) => {
-    writeFile(pathToConfig, JSON.stringify(config, undefined, 2), err => {
+  const result = new Promise<string>((resolve, reject) => {
+    const contents = JSON.stringify(config, undefined, 2);
+    writeFile(pathToConfig, contents, err => {
       if (err) {
         reject(err);
       } else {
-        log(
-          `Configuration written to ${DEFAULT_CONFIG_PATH}. Please add it to SCM ignore.`
-        );
-        resolve();
+        resolve(pathToConfig);
       }
     });
   });
