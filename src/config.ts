@@ -12,6 +12,10 @@ const environmentValidator = /^\/([a-zA-Z_-]+)(\/[a-zA-Z\/_-]+)*?$/;
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: string) => T;
+/** string alias for fully qualified parameter name. */
+export type FQN = string;
+/** string alias for parameter name (not fully qualified). */
+export type Key = string;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
@@ -28,9 +32,9 @@ export type PutResult = AWS.SSM.PutParameterResult;
  */
 export interface EnvironmentVariable {
   /** Full path of the parameter. */
-  path: string;
+  path: FQN;
   /** Path of the parameter without environemnt path. */
-  key: string;
+  key: Key;
   /** Tags applied to the parameter. */
   tags?: Tag[];
   /** Value of the parameter. */
@@ -46,7 +50,7 @@ export class Config {
   /** Whether or not the initial load from AWS was successfully completed. */
   isReady: Promise<boolean>;
   /** The LRU cache used for expiring values. */
-  private cache: LRU.Cache<string, Parameter>;
+  private cache: LRU.Cache<FQN, Parameter>;
   /** The prefix for AWS.SSM.Parameter values, the path to search recursively. */
   private environment: string;
   /** RegExp to find key value at the end of the path (extracting `environment`). */
@@ -84,7 +88,7 @@ export class Config {
    * @returns {undefined | T} `undefined` if a value for `key` can not be found,
    *    the result of `convert` on the found value otherwise.
    */
-  async getParamAs<T>(key: string, convert: Convert<T>): Promise<Option<T>> {
+  async getParamAs<T>(key: Key, convert: Convert<T>): Promise<Option<T>> {
     const value = await this.getParam(key);
     if (value === undefined) {
       return undefined;
@@ -99,7 +103,7 @@ export class Config {
    * @returns {undefined | string} `undefined` if a value for `key` can not be
    *    found, the found `string` value otherwise.
    */
-  async getParam(key: string): Promise<Option<string>> {
+  async getParam(key: Key): Promise<Option<string>> {
     const isReady = await this.isReady;
     const cacheKeys = this.cache.keys();
     const isCached = cacheKeys.findIndex(cacheKey => cacheKey === key) !== -1;
@@ -124,7 +128,7 @@ export class Config {
    * @param description (optional) description to set on the parameter.
    * @returns The `EnvironmentVariable` representation of the parameter.
    */
-  async put(key: string, value: string, description?: string) {
+  async put(key: Key, value: string, description?: string) {
     const fqn = this.fqn(key);
     const request: PutRequest = {
       Description: description,
@@ -229,7 +233,7 @@ export class Config {
    * @param key to check for validity.
    * @returns `true` if key may be used as a parameter name, `false` otherwise.
    */
-  private isKey(key?: string): boolean {
+  private isKey(key?: Key): boolean {
     return key !== undefined && keyValidator.test(key);
   }
 
@@ -284,7 +288,7 @@ export class Config {
    * @param fqn to check for validity.
    * @throws `Error` if `fqn` is not valid.
    */
-  private validateFqn(fqn: string): void {
+  private validateFqn(fqn: FQN): void {
     if (fqn.length > 1011) {
       throw new Error(
         `Fully qualified name is too long, ${fqn.length}. Max is 1011.`
@@ -297,7 +301,7 @@ export class Config {
    * @param key to check for validity.
    * @throws `Error` if `key` is not valid.
    */
-  private validateKey(key?: string): void {
+  private validateKey(key?: Key): void {
     if (key === undefined) {
       throw new Error('Key is may not be undefined.');
     } else if (!this.isKey(key)) {
