@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command';
 
-import { getEnvironment } from '../../conf';
 import { STAGE } from '../../constants';
+import { getEnvironment } from '../../projectConfig';
 
 interface Flags {
   withDecryption: boolean;

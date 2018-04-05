@@ -1,11 +1,11 @@
 import { Command, flags } from '@oclif/command';
-import { ProjectConfig, writeConfig } from '../conf';
 import {
   ACCESS_KEY_ID,
   DEFAULT_CONFIG_PATH,
   ROOT_PATH,
   SECRET_KEY_ID,
 } from '../constants';
+import { ProjectConfig, writeConfig } from '../projectConfig';
 
 export default class Init extends Command {
   static description = 'Create a configuration file for your project.';

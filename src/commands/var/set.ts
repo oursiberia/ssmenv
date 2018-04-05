@@ -1,8 +1,8 @@
 import { Command, flags } from '@oclif/command';
 import { args } from '@oclif/parser';
 
-import { getEnvironment } from '../../conf';
 import { KEY, STAGE, VALUE } from '../../constants';
+import { getEnvironment } from '../../projectConfig';
 import { parseTag, Tag, validateTag } from '../../tag';
 
 interface Flags {
