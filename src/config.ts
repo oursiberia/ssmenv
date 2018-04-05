@@ -2,6 +2,14 @@ import * as AWS from 'aws-sdk';
 import * as LRU from 'lru-cache';
 import { Tag } from './tag';
 
+/** Matches potential key values. */
+const keyValidator = /^[a-zA-Z_]+$/;
+/**
+ * Should matche strings like `/Dev/DBServer/MySQL` with multiple intermediate
+ * parts. There should not be a trailing `/` and it may not be empty.
+ */
+const environmentValidator = /^\/([a-zA-Z_-]+)(\/[a-zA-Z\/_-]+)*?$/;
+
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: string) => T;
 /** Type alias for a parameterized type that may be undefined. */
@@ -56,8 +64,9 @@ export class Config {
    * @param {Options} options for requesting parameters.
    */
   constructor(environment: string, ssm: AWS.SSM, options: Options = {}) {
-    this.cache = LRU({ max: 100, maxAge: 1000 * 60 * 60 * 24 });
-    this.environment = `${environment}`;
+    this.validateEnvironment(environment);
+    this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
+    this.environment = environment;
     this.keyMatcher = new RegExp(`^${environment}/(.*)$`);
     this.options = options;
     this.ssm = ssm;
@@ -196,6 +205,8 @@ export class Config {
    */
   private fqn(key: Key): FQN {
     const fqn = `${this.environment}/${key}`;
+    this.validateKey(key);
+    this.validateFqn(fqn);
     return fqn;
   }
 
@@ -211,6 +222,15 @@ export class Config {
     const isSecure = param.Type === 'SecureString';
     const withDecryption = this.options.WithDecryption || false;
     return hasName && (isString || (withDecryption && isSecure));
+  }
+
+  /**
+   * Checks if the given `key` is a valid parameter name.
+   * @param key to check for validity.
+   * @returns `true` if key may be used as a parameter name, `false` otherwise.
+   */
+  private isKey(key?: string): boolean {
+    return key !== undefined && keyValidator.test(key);
   }
 
   /**
@@ -242,6 +262,46 @@ export class Config {
         path,
         value: param.Value,
       };
+    }
+  }
+
+  /**
+   * Checks if the given `environment` is valid as the prefix of a fully
+   * qualified parameter name.
+   * @param environment to check for validity.
+   * @throws `Error` if `environment` is not valid.
+   */
+  private validateEnvironment(environment: string): void {
+    if (!environmentValidator.test(environment)) {
+      throw new Error(
+        `Environment is not valid, doesn't match ${environmentValidator}.`
+      );
+    }
+  }
+
+  /**
+   * Checks if the given `fqn` is a valid fully qualified parameter name.
+   * @param fqn to check for validity.
+   * @throws `Error` if `fqn` is not valid.
+   */
+  private validateFqn(fqn: string): void {
+    if (fqn.length > 1011) {
+      throw new Error(
+        `Fully qualified name is too long, ${fqn.length}. Max is 1011.`
+      );
+    }
+  }
+
+  /**
+   * Checks if the given `key` is a valid parameter name.
+   * @param key to check for validity.
+   * @throws `Error` if `key` is not valid.
+   */
+  private validateKey(key?: string): void {
+    if (key === undefined) {
+      throw new Error('Key is may not be undefined.');
+    } else if (!this.isKey(key)) {
+      throw new Error(`Key is not valid, doesn't match ${keyValidator}.`);
     }
   }
 }
