@@ -205,11 +205,11 @@ export class Config {
    * @returns `true` if `Name` exists and `Type` is a convertable type, `false`
    *    otherwise.
    */
-  private hasNameAndType(param: Parameter) {
+  private hasNameAndType(param: Parameter): boolean {
     const hasName = param.Name !== undefined;
     const isString = param.Type === 'String';
     const isSecure = param.Type === 'SecureString';
-    const withDecryption = this.options.WithDecryption;
+    const withDecryption = this.options.WithDecryption || false;
     return hasName && (isString || (withDecryption && isSecure));
   }
 
