@@ -8,7 +8,7 @@ const keyValidator = /^[a-zA-Z_]+$/;
  * Should matche strings like `/Dev/DBServer/MySQL` with multiple intermediate
  * parts. There should not be a trailing `/` and it may not be empty.
  */
-const environmentValidator = /^\/([a-zA-Z_-]+)(\/[a-zA-Z\/_-]+)*?$/;
+const rootPathValidator = /^\/([a-zA-Z_-]+)(\/[a-zA-Z\/_-]+)*?$/;
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: string) => T;
@@ -46,14 +46,14 @@ export interface EnvironmentVariable {
 /**
  *
  */
-export class Config {
+export class Environment {
   /** Whether or not the initial load from AWS was successfully completed. */
   isReady: Promise<boolean>;
   /** The LRU cache used for expiring values. */
   private cache: LRU.Cache<FQN, Parameter>;
   /** The prefix for AWS.SSM.Parameter values, the path to search recursively. */
-  private environment: string;
-  /** RegExp to find key value at the end of the path (extracting `environment`). */
+  private rootPath: string;
+  /** RegExp to find key value at the end of the path (extracting `rootPath`). */
   private keyMatcher: RegExp;
   /** Options to include when requesting parameters. */
   private options: Options;
@@ -61,17 +61,17 @@ export class Config {
   private ssm: AWS.SSM;
 
   /**
-   * Create a `Config` instance for the given `environment` using `ssm` to
+   * Create a `Environment` instance for the given `rootPath` using `ssm` to
    * retrieve parameter valeus.
-   * @param {string} environment path to search.
+   * @param {string} rootPath path to search.
    * @param {AWS.SSM} ssm to use for retrieving parameters.
    * @param {Options} options for requesting parameters.
    */
-  constructor(environment: string, ssm: AWS.SSM, options: Options = {}) {
-    this.validateEnvironment(environment);
+  constructor(rootPath: string, ssm: AWS.SSM, options: Options = {}) {
+    this.validateRootPath(rootPath);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
-    this.environment = environment;
-    this.keyMatcher = new RegExp(`^${environment}/(.*)$`);
+    this.rootPath = rootPath;
+    this.keyMatcher = new RegExp(`^${rootPath}/(.*)$`);
     this.options = options;
     this.ssm = ssm;
     this.isReady = this.refresh()
@@ -123,7 +123,7 @@ export class Config {
 
   /**
    * Push a parameter with value up to the SSM Parameter Store.
-   * @param key of the parameter to be combined with `environment`.
+   * @param key of the parameter to be combined with `rootPath`.
    * @param value to set.
    * @param description (optional) description to set on the parameter.
    * @returns The `EnvironmentVariable` representation of the parameter.
@@ -167,14 +167,14 @@ export class Config {
 
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
-   * parameter tree for the given environment.
+   * parameter tree for the given rootPath.
    * @returns {Promise<Parameter[]>} the array of `AWS.SSM.Parameter` values
-   *    found when using the environment as a path.
+   *    found when using the rootPath as a path.
    */
   private fetch(): Promise<Parameter[]> {
     const options: AWS.SSM.GetParametersByPathRequest = {
       ...this.options,
-      Path: `${this.environment}`,
+      Path: `${this.rootPath}`,
       Recursive: true,
     };
     return new Promise((resolve, reject) => {
@@ -192,11 +192,11 @@ export class Config {
   }
 
   /**
-   * The fully qualified name of the parameter based on the config environment
+   * The fully qualified name of the parameter based on the config rootPath
    * and the `key` provided. The fully qualified name includes the complete
    * hierarchy of the parameter path and name (`key`). For example:
    * `/Dev/DBServer/MySQL/db-string13` where `/Dev/DBServer/MySQL` is the
-   * `environment` and `db-string13` is the `key`.
+   * `rootPath` and `db-string13` is the `key`.
    *
    * For information about parameter name requirements and restrictions, see About
    * Creating Systems Manager Parameters in the AWS Systems Manager User Guide.
@@ -208,7 +208,7 @@ export class Config {
    * @throws `Error` if `key` or fully qualified name are not valid.
    */
   private fqn(key: Key): FQN {
-    const fqn = `${this.environment}/${key}`;
+    const fqn = `${this.rootPath}/${key}`;
     this.validateKey(key);
     this.validateFqn(fqn);
     return fqn;
@@ -271,15 +271,15 @@ export class Config {
   }
 
   /**
-   * Checks if the given `environment` is valid as the prefix of a fully
+   * Checks if the given `rootPath` is valid as the prefix of a fully
    * qualified parameter name.
-   * @param environment to check for validity.
-   * @throws `Error` if `environment` is not valid.
+   * @param rootPath to check for validity.
+   * @throws `Error` if `rootPath` is not valid.
    */
-  private validateEnvironment(environment: string): void {
-    if (!environmentValidator.test(environment)) {
+  private validateRootPath(rootPath: string): void {
+    if (!rootPathValidator.test(rootPath)) {
       throw new Error(
-        `Environment is not valid, doesn't match ${environmentValidator}.`
+        `Root path is not valid, doesn't match ${rootPathValidator}.`
       );
     }
   }

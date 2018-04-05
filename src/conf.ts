@@ -1,12 +1,12 @@
 import { SSM } from 'aws-sdk';
 import { readFile, writeFile } from 'fs';
-import { Config, Options } from './config';
 import {
   ACCESS_KEY_ID,
   CONFIG_FILE,
   ROOT_PATH,
   SECRET_KEY_ID,
 } from './constants';
+import { Environment, Options } from './environment';
 import { Fn, Log } from './log';
 
 export interface Conf {
@@ -19,11 +19,11 @@ export async function getConfig(
   stage: string,
   options?: Options,
   path?: string
-): Promise<Config> {
+): Promise<Environment> {
   const config = await readConfig(path);
   const ssm = await getSSM(config);
-  const environment = `${config.ROOT_PATH}${stage}`;
-  return new Config(environment, ssm, options);
+  const rootPath = `${config.ROOT_PATH}${stage}`;
+  return new Environment(rootPath, ssm, options);
 }
 
 async function getSSM(config: Conf): Promise<SSM> {
