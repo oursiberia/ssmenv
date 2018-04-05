@@ -88,8 +88,8 @@ export class Config {
    * @returns {undefined | T} `undefined` if a value for `key` can not be found,
    *    the result of `convert` on the found value otherwise.
    */
-  async getParamAs<T>(key: Key, convert: Convert<T>): Promise<Option<T>> {
-    const value = await this.getParam(key);
+  async getAs<T>(key: Key, convert: Convert<T>): Promise<Option<T>> {
+    const value = await this.get(key);
     if (value === undefined) {
       return undefined;
     } else {
@@ -103,7 +103,7 @@ export class Config {
    * @returns {undefined | string} `undefined` if a value for `key` can not be
    *    found, the found `string` value otherwise.
    */
-  async getParam(key: Key): Promise<Option<string>> {
+  async get(key: Key): Promise<Option<string>> {
     const isReady = await this.isReady;
     const cacheKeys = this.cache.keys();
     const isCached = cacheKeys.findIndex(cacheKey => cacheKey === key) !== -1;
@@ -112,7 +112,7 @@ export class Config {
       return undefined;
     } else if (isStale) {
       return this.refresh().then(() => {
-        return this.getParam(key);
+        return this.get(key);
       });
     } else {
       const fqn = this.fqn(key);
