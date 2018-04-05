@@ -3,7 +3,7 @@ import { writeFile } from 'fs';
 import { Conf } from '../conf';
 import {
   ACCESS_KEY_ID,
-  CONFIG_FILE,
+  DEFAULT_CONFIG_PATH,
   ROOT_PATH,
   SECRET_KEY_ID,
 } from '../constants';
@@ -53,14 +53,14 @@ export default class Init extends Command {
       ROOT_PATH: path!,
     };
 
-    const log = this.log;
-    const result: Promise<void> = new Promise((resolve, reject) => {
-      writeFile(CONFIG_FILE, JSON.stringify(config, undefined, 2), err => {
+    const contents = JSON.stringify(config, undefined, 2);
+    const result = new Promise<void>((resolve, reject) => {
+      writeFile(DEFAULT_CONFIG_PATH, contents, err => {
         if (err) {
           reject(err);
         } else {
-          log(
-            `Configuration written to ${CONFIG_FILE}. Please add it to SCM ignore.`
+          this.log(
+            `Configuration written to ${DEFAULT_CONFIG_PATH}. Please add it to SCM ignore.`
           );
           resolve();
         }
