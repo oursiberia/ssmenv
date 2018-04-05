@@ -1,6 +1,6 @@
 import { Command, flags } from '@oclif/command';
 
-import { getConfig } from '../../conf';
+import { getEnvironment } from '../../conf';
 import { STAGE } from '../../constants';
 
 interface Flags {
@@ -34,7 +34,7 @@ export default class EnvDotenv extends Command {
     if (stage === undefined) {
       throw new Error(`${STAGE} must be not provided.`);
     }
-    const config = await getConfig(stage, {
+    const config = await getEnvironment(stage, {
       WithDecryption: flags.withDecryption,
     });
     const isReady = await config.isReady;

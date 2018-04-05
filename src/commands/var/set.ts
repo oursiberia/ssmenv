@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command';
 import { args } from '@oclif/parser';
 
-import { getConfig } from '../../conf';
+import { getEnvironment } from '../../conf';
 import { KEY, STAGE, VALUE } from '../../constants';
 import { parseTag, Tag, validateTag } from '../../tag';
 
@@ -65,7 +65,7 @@ export default class VarSet extends Command {
     if (stage === undefined) {
       throw new Error(`${STAGE} must be not provided.`);
     }
-    const config = await getConfig(stage);
+    const config = await getEnvironment(stage);
     const result = await config.put(key, value, flags.description);
     this.log(JSON.stringify(result, undefined, 2));
   }

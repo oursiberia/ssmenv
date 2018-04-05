@@ -15,7 +15,7 @@ export interface Conf {
   ROOT_PATH: string;
 }
 
-export async function getConfig(
+export async function getEnvironment(
   stage: string,
   options?: Options,
   path?: string
