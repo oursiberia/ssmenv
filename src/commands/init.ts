@@ -1,5 +1,5 @@
 import { Command, flags } from '@oclif/command';
-import { Conf, writeConfig } from '../conf';
+import { ProjectConfig, writeConfig } from '../conf';
 import {
   ACCESS_KEY_ID,
   DEFAULT_CONFIG_PATH,
@@ -46,7 +46,7 @@ export default class Init extends Command {
       throw new Error(`path must start with a /; '${path}' was given.`);
     }
     // If checks didn't exit then we have valid values
-    const config: Conf = {
+    const config: ProjectConfig = {
       AWS_ACCESS_KEY: args[ACCESS_KEY_ID]!,
       AWS_SECRET_KEY: args[SECRET_KEY_ID]!,
       ROOT_PATH: path!,
