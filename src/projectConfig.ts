@@ -1,18 +1,30 @@
 import { SSM } from 'aws-sdk';
-import { readFile, writeFile } from 'fs';
+import { mkdir, readFile, stat, writeFile } from 'fs';
+import { sep as pathSeparator } from 'path';
 import {
   ACCESS_KEY_ID,
+  AWS_FILE_NAME,
   DEFAULT_CONFIG_PATH,
+  PROJECT_FILE_NAME,
   ROOT_PATH,
   SECRET_KEY_ID,
 } from './constants';
 import { Environment, Options } from './environment';
 import { Fn, Log } from './log';
 
+/**
+ * Configuration necessary for connecting to AWS.
+ */
+export interface AwsConfig {
+  accessKeyId: string;
+  secretAccessKey: string;
+}
+
+/**
+ * Configuration indicating parameters to be read.
+ */
 export interface ProjectConfig {
-  AWS_ACCESS_KEY: string;
-  AWS_SECRET_KEY: string;
-  ROOT_PATH: string;
+  rootPath: string;
 }
 
 /**
@@ -28,9 +40,10 @@ export async function getEnvironment(
   options?: Options,
   pathToConfig?: string
 ) {
-  const config = await readConfig(pathToConfig);
-  const ssm = getSSM(config);
-  const rootPath = `${config.ROOT_PATH}${stage}`;
+  const awsConfig = await readAwsConfig(pathToConfig);
+  const projectConfig = await readProjectConfig(pathToConfig);
+  const ssm = getSSM(awsConfig);
+  const rootPath = `${projectConfig.rootPath}${stage}`;
   return new Environment(rootPath, ssm, options);
 }
 
@@ -39,34 +52,34 @@ export async function getEnvironment(
  * @param config with API info.
  * @returns the initialized `AWS.SSM` instance ready to make requests.
  */
-function getSSM(config: ProjectConfig): SSM {
+function getSSM(config: AwsConfig): SSM {
   return new SSM({
-    accessKeyId: config.AWS_ACCESS_KEY,
+    accessKeyId: config.accessKeyId,
     apiVersion: '2014-11-06',
     region: 'us-east-1',
-    secretAccessKey: config.AWS_SECRET_KEY,
+    secretAccessKey: config.secretAccessKey,
   });
 }
 
 /**
- * Read `SsmenvConfig` from the given filesystem `pathToConfig`.
- * @param pathToConfig from which the `SsmenvConfig` can be read.
- * @returns the `SsmenvConfig` located at `pathToConfig`.
+ * Read `AwsConfig` from the given filesystem `pathToConfig`.
+ * @param pathToConfig from which the `AwsConfig` can be read.
+ * @returns the `AwsConfig` located at `pathToConfig`.
  * @throws `Error` if required properties are missing from the read config or if
  *    there is a problem with file I/O.
  */
-function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
-  return new Promise<ProjectConfig>((resolve, reject) => {
-    readFile(pathToConfig, { encoding: 'utf8' }, (err, data) => {
+function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+  return new Promise<AwsConfig>((resolve, reject) => {
+    const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
+    readFile(awsFileName, { encoding: 'utf8' }, (err, data) => {
       if (err) {
         reject(err);
       } else {
         const conf = JSON.parse(data);
         const props = Object.getOwnPropertyNames(conf);
-        const hasAccessKeyId = props.indexOf(ACCESS_KEY_ID) !== -1;
-        const hasSecretKeyId = props.indexOf(SECRET_KEY_ID) !== -1;
-        const hasRootPath = props.indexOf(ROOT_PATH) !== -1;
-        if (hasAccessKeyId && hasRootPath && hasSecretKeyId) {
+        const hasAccessKeyId = props.indexOf('accessKeyId') !== -1;
+        const hasSecretKeyId = props.indexOf('secretAccessKey') !== -1;
+        if (hasAccessKeyId && hasSecretKeyId) {
           resolve(conf);
         } else {
           reject(new Error('Required properties are missing'));
@@ -77,24 +90,106 @@ function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
 }
 
 /**
- * Writes the given `config` as JSON to `pathToConfig`.
- * @param config to write store.
- * @param pathToConfig filesystem path where the configuration will be written.
- * @returns the path to which the file was written.
+ * Read `Project` from the given filesystem `pathToConfig`.
+ * @param pathToConfig from which the `Project` can be read.
+ * @returns the `Project` located at `pathToConfig`.
+ * @throws `Error` if required properties are missing from the read config or if
+ *    there is a problem with file I/O.
  */
-export function writeConfig(
-  config: ProjectConfig,
-  pathToConfig: string = DEFAULT_CONFIG_PATH
-) {
-  const result = new Promise<string>((resolve, reject) => {
-    const contents = JSON.stringify(config, undefined, 2);
-    writeFile(pathToConfig, contents, err => {
+function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+  return new Promise<ProjectConfig>((resolve, reject) => {
+    const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
+    readFile(projectFileName, { encoding: 'utf8' }, (err, data) => {
       if (err) {
         reject(err);
       } else {
-        resolve(pathToConfig);
+        const conf = JSON.parse(data);
+        const props = Object.getOwnPropertyNames(conf);
+        const hasRootPath = props.indexOf('rootPath') !== -1;
+        if (hasRootPath) {
+          resolve(conf);
+        } else {
+          reject(new Error('Required properties are missing'));
+        }
       }
     });
   });
-  return result;
+}
+
+/**
+ * Writes the given `awsConfig` and `projectConfig` as JSON files within
+ * `pathToConfig`.
+ * @param awsConfig to write.
+ * @param projectConfig to write.
+ * @param pathToConfig filesystem path where the configuration will be written.
+ * @returns the paths to which the files were written.
+ */
+export function writeConfig(
+  awsConfig: AwsConfig,
+  projectConfig: ProjectConfig,
+  pathToConfig: string = DEFAULT_CONFIG_PATH
+) {
+  return ensureConfigDirectory(pathToConfig).then(() => {
+    const awsResult = writeAwsConfig(awsConfig, pathToConfig);
+    const projectResult = writeProjectConfig(projectConfig, pathToConfig);
+    return Promise.all([awsResult, projectResult]);
+  });
+}
+
+/**
+ * Ensure the directory indicated by `pathToConfig` exists.
+ * @param pathToConfig to ensure.
+ * @returns `true` if successful.
+ * @throws `NodeJS.ErrnoException` otherwise.
+ */
+function ensureConfigDirectory(pathToConfig: string) {
+  return new Promise<boolean>((resolve, reject) => {
+    mkdir(pathToConfig, 0o755, err => {
+      if (err && err.code !== 'EEXIST') {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+/**
+ * Writes the given `awsConfig` as a JSON file within `pathToConfig`.
+ * @param awsConfig to write.
+ * @param pathToConfig filesystem path where the configuration will be written.
+ * @returns the paths to which the file was written.
+ */
+function writeAwsConfig(awsConfig: AwsConfig, pathToConfig: string) {
+  return new Promise<string>((resolve, reject) => {
+    const awsContents = JSON.stringify(awsConfig, undefined, 2);
+    const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
+    writeFile(awsFileName, awsContents, 'utf8', err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(awsFileName);
+      }
+    });
+  });
+}
+
+/**
+ * Writes the given `config` as a JSON file within `pathToConfig`.
+ * @param config to write.
+ * @param pathToConfig filesystem path where the configuration will be written.
+ * @returns the paths to which the file was written.
+ */
+function writeProjectConfig(config: ProjectConfig, pathToConfig: string) {
+  return new Promise<string>((resolve, reject) => {
+    const projectContents = JSON.stringify(config, undefined, 2);
+    const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
+    writeFile(projectFileName, projectContents, 'utf8', err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(projectFileName);
+      }
+    });
+  });
 }

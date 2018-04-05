@@ -1,11 +1,12 @@
 import { Command, flags } from '@oclif/command';
+import chalk from 'chalk';
 import {
   ACCESS_KEY_ID,
   DEFAULT_CONFIG_PATH,
   ROOT_PATH,
   SECRET_KEY_ID,
 } from '../constants';
-import { ProjectConfig, writeConfig } from '../projectConfig';
+import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
 
 export default class Init extends Command {
   static description = 'Create a configuration file for your project.';
@@ -18,20 +19,18 @@ export default class Init extends Command {
     }),
   };
 
-  // tslint:disable object-literal-sort-keys
   static args = [
     {
+      description: 'AWS Access Key Id to use when interacting with AWS API.',
       name: ACCESS_KEY_ID,
       required: true,
-      description: 'AWS Access Key Id to use when interacting with AWS API.',
     },
     {
+      description: 'AWS Secret Key to use when interacting with AWS API.',
       name: SECRET_KEY_ID,
       required: true,
-      description: 'AWS Secret Key to use when interacting with AWS API.',
     },
   ];
-  // tslint:enable object-literal-sort-keys
 
   async run() {
     const { args, flags } = this.parse(Init);
@@ -46,20 +45,29 @@ export default class Init extends Command {
       throw new Error(`path must start with a /; '${path}' was given.`);
     }
     // If checks didn't exit then we have valid values
-    const config: ProjectConfig = {
-      AWS_ACCESS_KEY: args[ACCESS_KEY_ID]!,
-      AWS_SECRET_KEY: args[SECRET_KEY_ID]!,
-      ROOT_PATH: path!,
+    const projectConfig: ProjectConfig = {
+      rootPath: path!,
+    };
+    const awsConfig: AwsConfig = {
+      accessKeyId: args[ACCESS_KEY_ID]!,
+      secretAccessKey: args[SECRET_KEY_ID]!,
     };
 
-    const contents = JSON.stringify(config, undefined, 2);
-    const result = writeConfig(config, DEFAULT_CONFIG_PATH).then(
-      pathToConfig => {
-        this.log(
-          `Configuration written to ${pathToConfig}. Please add it to SCM ignore.`
-        );
-      }
-    );
+    const contents = JSON.stringify(projectConfig, undefined, 2);
+    const result = writeConfig(
+      awsConfig,
+      projectConfig,
+      DEFAULT_CONFIG_PATH
+    ).then(paths => {
+      const keyword = chalk.keyword('green');
+      const [awsPath, projectPath] = paths.map(v => keyword(v));
+      const stdout = [
+        `Configuration written to ${projectPath} and ${awsPath}.`,
+        `* Recommend adding ${projectPath} to source control.`,
+        `* Recommend ignoring ${awsPath} in source control.`,
+      ];
+      stdout.forEach(this.log.bind(this));
+    });
     return result;
   }
 }
