@@ -71,8 +71,8 @@ export default class VarSet extends Command {
   async run() {
     const { args, flags } = this.parse<Flags, Args>(VarSet);
     const { key, stage, value } = args;
-    const config = await getEnvironment(stage);
-    const result = await config.put(key, value, flags.description);
+    const environment = await getEnvironment(stage);
+    const result = await environment.put(key, value, flags.description);
     this.log(JSON.stringify(result, undefined, 2));
   }
 }
