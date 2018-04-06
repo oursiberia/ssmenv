@@ -144,7 +144,7 @@ export class Init extends Command {
         `* Recommend adding ${projectPath} to source control.`,
         `* Recommend ignoring ${awsPath} in source control.`,
       ];
-      stdout.forEach(this.log.bind(this));
+      stdout.forEach(line => this.log(line));
     });
     return result;
   }
