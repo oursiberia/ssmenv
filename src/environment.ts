@@ -68,7 +68,7 @@ export class Environment {
   /** The LRU cache used for expiring values. */
   private cache: LRU.Cache<FQN, Parameter>;
   /** The prefix for AWS.SSM.Parameter values, the path to search recursively. */
-  private rootPath: string;
+  private fqnPrefix: string;
   /** RegExp to find key value at the end of the path (extracting `rootPath`). */
   private keyMatcher: RegExp;
   /** Options to include when requesting parameters. */
@@ -79,15 +79,15 @@ export class Environment {
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
    * retrieve parameter valeus.
-   * @param {string} rootPath path to search.
+   * @param {string} fqnPrefix path to search.
    * @param {AWS.SSM} ssm to use for retrieving parameters.
    * @param {Options} options for requesting parameters.
    */
-  constructor(rootPath: string, ssm: AWS.SSM, options: Options = {}) {
-    this.validateRootPath(rootPath);
+  constructor(fqnPrefix: string, ssm: AWS.SSM, options: Options = {}) {
+    this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
-    this.rootPath = rootPath;
-    this.keyMatcher = new RegExp(`^${rootPath}/(.*)$`);
+    this.fqnPrefix = fqnPrefix;
+    this.keyMatcher = new RegExp(`^${fqnPrefix}/(.*)$`);
     this.options = options;
     this.ssm = ssm;
     this.isReady = this.refresh()
@@ -139,7 +139,7 @@ export class Environment {
 
   /**
    * Push a parameter with value up to the SSM Parameter Store.
-   * @param key of the parameter to be combined with `rootPath`.
+   * @param key of the parameter to be combined with `fqnPrefix`.
    * @param value to set.
    * @param description (optional) description to set on the parameter.
    * @returns The `EnvironmentVariable` representation of the parameter.
@@ -183,14 +183,14 @@ export class Environment {
 
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
-   * parameter tree for the given rootPath.
+   * parameter tree for the given fqnPrefix.
    * @returns {Promise<Parameter[]>} the array of `AWS.SSM.Parameter` values
-   *    found when using the rootPath as a path.
+   *    found when using the `fqnPrefix` as a path.
    */
   private fetch(): Promise<Parameter[]> {
     const options: AWS.SSM.GetParametersByPathRequest = {
       ...this.options,
-      Path: `${this.rootPath}`,
+      Path: `${this.fqnPrefix}`,
       Recursive: true,
     };
     return new Promise((resolve, reject) => {
@@ -208,11 +208,11 @@ export class Environment {
   }
 
   /**
-   * The fully qualified name of the parameter based on the config rootPath
+   * The fully qualified name of the parameter based on the config `fqnPrefix`
    * and the `key` provided. The fully qualified name includes the complete
    * hierarchy of the parameter path and name (`key`). For example:
    * `/Dev/DBServer/MySQL/db-string13` where `/Dev/DBServer/MySQL` is the
-   * `rootPath` and `db-string13` is the `key`.
+   * `fqnPrefix` and `db-string13` is the `key`.
    *
    * For information about parameter name requirements and restrictions, see About
    * Creating Systems Manager Parameters in the AWS Systems Manager User Guide.
@@ -224,7 +224,7 @@ export class Environment {
    * @throws `Error` if `key` or fully qualified name are not valid.
    */
   private fqn(key: Key): FQN {
-    const fqn = `${this.rootPath}/${key}`;
+    const fqn = `${this.fqnPrefix}/${key}`;
     this.validateKey(key);
     this.validateFqn(fqn);
     return fqn;
