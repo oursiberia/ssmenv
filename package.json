@@ -1,7 +1,7 @@
 {
   "name": "ssmenv",
   "description": "Manage environment variables with AWS SSM.",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "author": "Bryan Swift",
   "bin": {
     "ssmenv": "./bin/run"
@@ -29,6 +29,7 @@
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-prettier": "^2.6.0",
     "globby": "^8.0.1",
+    "pkg": "^4.3.1",
     "prettier": "^1.11.1",
     "ts-node": "5",
     "tslib": "^1.9.0",
@@ -63,6 +64,7 @@
   "scripts": {
     "build": "rm -rf lib && tsc",
     "clean": "rm -f .oclif.manifest.json",
+    "dist": "yarn run build && yarn pkg --targets=node8-macos,node8-linux,node8-windows --out-path=dist .",
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
     "postpublish": "yarn run clean",
     "posttest": "yarn run lint",
@@ -71,5 +73,8 @@
     "test": "echo NO TESTS",
     "version": "oclif-dev readme && git add README.md"
   },
-  "types": "lib/index.d.ts"
+  "types": "lib/index.d.ts",
+  "pkg": {
+    "scripts": "lib/**/*.js"
+  }
 }
