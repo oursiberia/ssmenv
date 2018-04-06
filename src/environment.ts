@@ -30,7 +30,7 @@ export type Option<T> = T | undefined;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
 export type Options = Partial<AWS.SSM.GetParametersByPathRequest>;
 /** Type alias for `AWS.SSM.Paramter`. */
-export type Parameter = AWS.SSM.Parameter;
+export type Parameter = AWS.SSM.ParameterHistory;
 /** Type alias for `AWS.SSM.PutParameterRequest`. */
 export type PutRequest = AWS.SSM.PutParameterRequest;
 /** Type alias for `AWS.SSM.PutParameterResult`. */
@@ -40,6 +40,8 @@ export type PutResult = AWS.SSM.PutParameterResult;
  * Structure of an environment variable.
  */
 export interface EnvironmentVariable {
+  /** Description applied to the environment variable. */
+  description?: string;
   /** Full path of the parameter. */
   path: FQN;
   /** Path of the parameter without environemnt path. */
@@ -201,6 +203,7 @@ export class Environment {
           reject(new Error(`No version returned when setting ${fqn}`));
         } else {
           const parameter: Parameter = {
+            Description: description,
             Name: fqn,
             Type: request.Type,
             Value: request.Value,
@@ -309,6 +312,7 @@ export class Environment {
       return undefined;
     } else {
       return {
+        description: param.Description,
         key,
         path,
         value: param.Value,
