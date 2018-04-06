@@ -1,16 +1,14 @@
 import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
-import { STAGE } from '../../constants';
+import { Stage, stagePositional } from '../../arguments/stage';
 import { getEnvironment } from '../../projectConfig';
 
 interface Flags {
   withDecryption: boolean;
 }
 
-interface Args {
-  STAGE: string | undefined;
-}
+interface Args extends Stage {} // tslint:disable-line no-empty-interface
 
 export default class EnvDotenv extends Command {
   static description = 'Create a .env file from stored parameters.';
@@ -21,20 +19,11 @@ export default class EnvDotenv extends Command {
     }),
   };
 
-  static args: Parser.IArg[] = [
-    {
-      description: 'Stage to use for retrieving data. Appended to root path.',
-      name: STAGE,
-      required: true,
-    },
-  ];
+  static args: Parser.IArg[] = [stagePositional];
 
   async run() {
     const { args, flags } = this.parse<Flags, Args>(EnvDotenv);
-    const stage = args[STAGE];
-    if (stage === undefined) {
-      throw new Error(`${STAGE} must be not provided.`);
-    }
+    const { stage } = args;
     const config = await getEnvironment(stage, {
       WithDecryption: flags.withDecryption,
     });

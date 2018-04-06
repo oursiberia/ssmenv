@@ -1,7 +1,9 @@
 import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
-import { KEY, STAGE, VALUE } from '../../constants';
+import { Key, keyPositional } from '../../arguments/key';
+import { Stage, stagePositional } from '../../arguments/stage';
+import { Value, valuePositional } from '../../arguments/value';
 import { getEnvironment } from '../../projectConfig';
 import { parseTag, Tag, validateTag } from '../../tag';
 
@@ -11,11 +13,7 @@ interface Flags {
   withEncryption?: string;
 }
 
-interface Args {
-  KEY: string;
-  STAGE: string;
-  VALUE: string;
-}
+interface Args extends Key, Stage, Value {}
 
 export default class VarSet extends Command {
   static description = 'Set the value of a variable. Creates it if it does not exist, creates a new version if it does.';
@@ -40,31 +38,14 @@ export default class VarSet extends Command {
   };
 
   static args: Parser.IArg[] = [
-    {
-      description: 'Stage to use for retrieving data. Appended to root path.',
-      name: STAGE,
-      required: true,
-    },
-    {
-      description: 'Key to use when setting the variable; AKA variable name.',
-      name: KEY,
-      required: true,
-    },
-    {
-      description: 'Value to set.',
-      name: VALUE,
-      required: true,
-    },
+    stagePositional,
+    keyPositional,
+    valuePositional,
   ];
 
   async run() {
     const { args, flags } = this.parse<Flags, Args>(VarSet);
-    const key = args.KEY;
-    const stage = args.STAGE;
-    const value = args.VALUE;
-    if (stage === undefined) {
-      throw new Error(`${STAGE} must be not provided.`);
-    }
+    const { key, stage, value } = args;
     const config = await getEnvironment(stage);
     const result = await config.put(key, value, flags.description);
     this.log(JSON.stringify(result, undefined, 2));
