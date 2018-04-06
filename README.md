@@ -4,11 +4,11 @@ ssmenv
 Manage environment variables with AWS SSM.
 
 [![Version](https://img.shields.io/npm/v/ssmenv.svg)](https://npmjs.org/package/ssmenv)
-[![CircleCI](https://circleci.com/gh/whoismyvoice/ssmenv/tree/master.svg?style=shield)](https://circleci.com/gh/whoismyvoice/ssmenv/tree/master)
-[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/whoismyvoice/ssmenv?branch=master&svg=true)](https://ci.appveyor.com/project/whoismyvoice/ssmenv/branch/master)
-[![Codecov](https://codecov.io/gh/whoismyvoice/ssmenv/branch/master/graph/badge.svg)](https://codecov.io/gh/whoismyvoice/ssmenv)
+[![CircleCI](https://circleci.com/gh/oursiberia/ssmenv.svg?style=svg)](https://circleci.com/gh/oursiberia/ssmenv)
+[![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/oursiberia/ssmenv?branch=master&svg=true)](https://ci.appveyor.com/project/oursiberia/ssmenv/branch/master)
+[![Codecov](https://codecov.io/gh/oursiberia/ssmenv/branch/master/graph/badge.svg)](https://codecov.io/gh/oursiberia/ssmenv)
 [![Downloads/week](https://img.shields.io/npm/dw/ssmenv.svg)](https://npmjs.org/package/ssmenv)
-[![License](https://img.shields.io/npm/l/ssmenv.svg)](https://github.com/whoismyvoice/ssmenv/blob/master/package.json)
+[![License](https://img.shields.io/npm/l/ssmenv.svg)](https://github.com/oursiberia/ssmenv/blob/master/package.json)
 
 <!-- toc -->
 * [Usage](#usage)
