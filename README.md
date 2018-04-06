@@ -1,5 +1,4 @@
-ssmenv
-======
+# ssmenv
 
 Manage environment variables with AWS SSM.
 
