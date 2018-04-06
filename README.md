@@ -37,6 +37,9 @@ ignored by source control.
 
 # Commands
 
+In the following command examples lines beginning with `? ` indicate prompts
+for input.
+
 <!-- commands -->
 * [ssmenv env STAGE](#ssmenv-env-stage)
 * [ssmenv env:dotenv STAGE](#ssmenv-envdotenv-stage)
