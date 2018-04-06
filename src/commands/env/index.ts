@@ -1,2 +1,1 @@
-import EnvDotenv from './dotenv';
-export default EnvDotenv;
+export * from './dotenv';

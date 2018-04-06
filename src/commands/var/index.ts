@@ -1,2 +1,1 @@
-import VarSet from './set';
-export default VarSet;
+export * from './set';
