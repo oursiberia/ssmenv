@@ -129,7 +129,7 @@ export class Environment {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;
-    this.keyMatcher = new RegExp(`^${fqnPrefix}/(.*)$`);
+    this.keyMatcher = new RegExp(`^${fqnPrefix}/(${PART.source})$`);
     this.options = options;
     this.ssm = ssm;
     this.isReady = this.refresh()
