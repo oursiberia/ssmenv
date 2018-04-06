@@ -30,27 +30,90 @@ USAGE
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [ssmenv hello [FILE]](#ssmenv-hello-file)
+* [ssmenv env STAGE](#ssmenv-env-stage)
+* [ssmenv env:dotenv STAGE](#ssmenv-envdotenv-stage)
 * [ssmenv help [COMMAND]](#ssmenv-help-command)
+* [ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]](#ssmenv-init-rootpath-awsaccess-awssecret)
+* [ssmenv var STAGE KEY VALUE](#ssmenv-var-stage-key-value)
+* [ssmenv var:set STAGE KEY VALUE](#ssmenv-varset-stage-key-value)
 
-## ssmenv hello [FILE]
+## ssmenv env STAGE
 
-describe the command here
+Generate .env compatible output from stored parameters.
 
 ```
 USAGE
-  $ ssmenv hello [FILE]
+  $ ssmenv env STAGE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
 
 OPTIONS
-  -f, --force
-  -n, --name=name  name to print
+  --withDecryption  Attempt to decrypt parameters using accessible KMS keys.
 
-EXAMPLE
-  $ ssmenv hello
-  hello world from ./src/hello.ts!
+EXAMPLES
+  # Write test stage to STDOUT; assumes "FOO" and "foo" are set as vars.
+  $ ssmenv env:dotenv test
+  FOO=bar
+  foo=baz
+
+  # Write test stage to .env.test
+  $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/hello.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/hello.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/env.ts)_
+
+### ssmenv env:dotenv STAGE
+
+Generate .env compatible output from stored parameters.
+
+```
+USAGE
+  $ ssmenv env:dotenv STAGE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+
+OPTIONS
+  --withDecryption  Attempt to decrypt parameters using accessible KMS keys.
+
+EXAMPLES
+  # Write test stage to STDOUT; assumes "FOO" and "foo" are set as vars.
+  $ ssmenv env:dotenv test
+  FOO=bar
+  foo=baz
+
+  # Write test stage to .env.test
+  $ ssmenv env:dotenv test > .env.test
+```
+
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/env/dotenv.ts)_
+
+## ssmenv env:dotenv STAGE
+
+Generate .env compatible output from stored parameters.
+
+```
+USAGE
+  $ ssmenv env:dotenv STAGE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+
+OPTIONS
+  --withDecryption  Attempt to decrypt parameters using accessible KMS keys.
+
+EXAMPLES
+  # Write test stage to STDOUT; assumes "FOO" and "foo" are set as vars.
+  $ ssmenv env:dotenv test
+  FOO=bar
+  foo=baz
+
+  # Write test stage to .env.test
+  $ ssmenv env:dotenv test > .env.test
+```
+
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/env/dotenv.ts)_
 
 ## ssmenv help [COMMAND]
 
@@ -68,4 +131,160 @@ OPTIONS
 ```
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.2/src/commands/help.ts)_
+
+## ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]
+
+Create a configuration files for your project.
+
+```
+USAGE
+  $ ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]
+
+ARGUMENTS
+  ROOTPATH   Root path for the project.
+  AWSACCESS  AWS Access Key Id to use when interacting with AWS API.
+  AWSSECRET  AWS Secret Key to use when interacting with AWS API.
+
+EXAMPLES
+  # Create configuration with given parameters.
+  $ ssmenv init / FOO bar
+  Configuration written to .ssmenv/public.json and .ssmenv/private.json.
+  * Recommend adding .ssmenv/public.json to source control.
+  * Recommend ignoring .ssmenv/private.json in source control.
+
+  # Create configuration by using prompts.
+  # The value inside parentheses will be used as the default.
+  $ ssmenv init
+  ? AWS Access Key ID
+  ? AWS Secret Access Key
+  ? Root Path (/)
+  Configuration written to .ssmenv/public.json and .ssmenv/private.json.
+  * Recommend adding .ssmenv/public.json to source control.
+  * Recommend ignoring .ssmenv/private.json in source control.
+```
+
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/init.ts)_
+
+## ssmenv var STAGE KEY VALUE
+
+Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
+
+```
+USAGE
+  $ ssmenv var STAGE KEY VALUE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+  VALUE  Value of the variable to set.
+
+OPTIONS
+  -d, --description=description     Description of the variable.
+  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
+  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+
+EXAMPLES
+  # Set value of FOO variable in test stage.
+  $ ssmenv var:set test FOO bar
+  {
+     "key": "FOO",
+     "path": "/test/FOO",
+     "value": "bar",
+     "version": 1
+  }
+
+  # Set value of FOO variable for staging with a description.
+  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  {
+     "key": "FOO",
+     "path": "/staging/FOO",
+     "description": "A description of FOO"
+     "value": "bar baz",
+     "version": 1
+  }
+```
+
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/var.ts)_
+
+### ssmenv var:set STAGE KEY VALUE
+
+Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
+
+```
+USAGE
+  $ ssmenv var:set STAGE KEY VALUE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+  VALUE  Value of the variable to set.
+
+OPTIONS
+  -d, --description=description     Description of the variable.
+  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
+  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+
+EXAMPLES
+  # Set value of FOO variable in test stage.
+  $ ssmenv var:set test FOO bar
+  {
+     "key": "FOO",
+     "path": "/test/FOO",
+     "value": "bar",
+     "version": 1
+  }
+
+  # Set value of FOO variable for staging with a description.
+  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  {
+     "key": "FOO",
+     "path": "/staging/FOO",
+     "description": "A description of FOO"
+     "value": "bar baz",
+     "version": 1
+  }
+```
+
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/var/set.ts)_
+
+## ssmenv var:set STAGE KEY VALUE
+
+Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
+
+```
+USAGE
+  $ ssmenv var:set STAGE KEY VALUE
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+  VALUE  Value of the variable to set.
+
+OPTIONS
+  -d, --description=description     Description of the variable.
+  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
+  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+
+EXAMPLES
+  # Set value of FOO variable in test stage.
+  $ ssmenv var:set test FOO bar
+  {
+     "key": "FOO",
+     "path": "/test/FOO",
+     "value": "bar",
+     "version": 1
+  }
+
+  # Set value of FOO variable for staging with a description.
+  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  {
+     "key": "FOO",
+     "path": "/staging/FOO",
+     "description": "A description of FOO"
+     "value": "bar baz",
+     "version": 1
+  }
+```
+
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.0.0/src/commands/var/set.ts)_
 <!-- commandsstop -->
