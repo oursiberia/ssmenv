@@ -31,41 +31,22 @@ export default class Init extends Command {
   ];
 
   /**
-   * Checks if the given `input` is permissible as a root path. Root
+   * Uses `Environment#validateRootPath` to check for errors but catches any
+   * thrown to translate them into a `string` message.
    * @param input to be validated.
    * @return `true` if `input` is valid, a `string` message if `input` is not
    *    valid.
    */
   static isValidRootPath(input: string) {
-    if (input === '/') {
+    try {
+      Environment.validateRootPath(input);
       return true;
-    }
-    if (!input.startsWith('/')) {
-      return `Root path must start with '/'; ${input} given.`;
-    }
-    if (!input.endsWith('/')) {
-      return `Root path must end with '/'; ${input} given.`;
-    }
-    if (input === '//') {
-      return 'Path can not have empty intermediate keys.';
-    }
-    const keys = input.slice(1, -1).split('/');
-    if (keys.length === 1 && keys[0] === '') {
-      return true;
-    } else {
-      const results = keys.map(key => {
-        try {
-          Environment.validatePathPart('Path part', key);
-          return true;
-        } catch (err) {
-          if (err instanceof Error) {
-            return err.message;
-          } else {
-            throw err;
-          }
-        }
-      });
-      return results.find(result => typeof result === 'string') || true;
+    } catch (err) {
+      if (err instanceof Error) {
+        return err.message;
+      } else {
+        throw err;
+      }
     }
   }
 

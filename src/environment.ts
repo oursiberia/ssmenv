@@ -2,13 +2,22 @@ import * as AWS from 'aws-sdk';
 import * as LRU from 'lru-cache';
 import { Tag } from './tag';
 
+/** Regex for a valid path part, meant to be reused as `source`. */
+const PART = /[\w_-]+/;
 /** Matches potential key values. */
-const keyValidator = /^[a-zA-Z_]+$/;
+const keyRegex = new RegExp(`^${PART.source}$`);
 /**
- * Should matche strings like `/Dev/DBServer/MySQL` with multiple intermediate
- * parts. There should not be a trailing `/` and it may not be empty.
+ * Should match strings like `/Dev/DBServer/MySQL/db_string-13` with multiple
+ * intermediate parts. There should not be a trailing `/` and it may not be
+ * empty.
  */
-const rootPathValidator = /^\/([a-zA-Z_-]+)(\/[a-zA-Z\/_-]+)*?$/;
+const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
+/**
+ * Should match strings like `/Dev/DBServer/MySQL/` with multiple intermediate
+ * parts. There must be leading and trailing `/` but they may not be adjacent to
+ * one another.
+ */
+const rootPathRegex = new RegExp(`^/((${PART.source})(/${PART.source})*?/)?$`);
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: string) => T;
@@ -56,10 +65,41 @@ export class Environment {
   static validatePathPart(name: string, key?: string): void {
     if (key === undefined) {
       throw new Error(`${name} may not be undefined.`);
-    } else if (!keyValidator.test(key)) {
+    } else if (!keyRegex.test(key)) {
       throw new Error(
-        `${name} is not valid, ${key} doesn't match ${keyValidator}.`
+        `${name} is not valid, ${key} doesn't match ${keyRegex}.`
       );
+    }
+  }
+
+  /**
+   * Checks if the given `input` is permissible as a root path. Root paths
+   * must start and end with `/` and have valid 'keys' between any two `/` which
+   * follow one another.
+   * @param input to be validated.
+   * @return `true` if `input` is valid, a `string` message if `input` is not
+   *    valid.
+   */
+  static validateRootPath(input: string): void {
+    if (input === '/') {
+      return;
+    }
+    if (!input.startsWith('/')) {
+      throw new Error(`Root path must start with '/'; ${input} given.`);
+    }
+    if (!input.endsWith('/')) {
+      throw new Error(`Root path must end with '/'; ${input} given.`);
+    }
+    if (input === '//') {
+      throw new Error('Path can not have empty intermediate keys.');
+    }
+    const keys = input.slice(1, -1).split('/');
+    if (keys.length === 1 && keys[0] === '') {
+      return;
+    } else {
+      const results = keys.forEach(key => {
+        Environment.validatePathPart('Path part', key);
+      });
     }
   }
 
@@ -284,12 +324,14 @@ export class Environment {
    */
   private validateFqn(fqn: FQN): void {
     if (fqn.length > 1011) {
-      throw new Error(
-        `Fully qualified name is too long, ${fqn.length}. Max is 1011.`
-      );
+      throw new Error(`FQN is too long, ${fqn.length} chars; max is 1011.`);
     }
-    // TODO: Check ends with valid key
-    // TODO: Check starts with valid root path
+    if (!fqnRegex.test(fqn)) {
+      throw new Error(`FQN is not valid, ${fqn} doesn't match ${fqnRegex}.`);
+    }
+    const lastSlash = fqn.lastIndexOf('/') + 1; // offset by one to make slices easier
+    Environment.validateRootPath(fqn.slice(0, lastSlash));
+    this.validateKey(fqn.slice(lastSlash));
   }
 
   /**
@@ -299,19 +341,5 @@ export class Environment {
    */
   private validateKey(key?: Key): void {
     Environment.validatePathPart('Key', key);
-  }
-
-  /**
-   * Checks if the given `rootPath` is valid as the prefix of a fully
-   * qualified parameter name.
-   * @param rootPath to check for validity.
-   * @throws `Error` if `rootPath` is not valid.
-   */
-  private validateRootPath(rootPath: string): void {
-    if (!rootPathValidator.test(rootPath)) {
-      throw new Error(
-        `Root path is not valid, doesn't match ${rootPathValidator}.`
-      );
-    }
   }
 }
