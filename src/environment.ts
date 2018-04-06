@@ -47,6 +47,22 @@ export interface EnvironmentVariable {
  *
  */
 export class Environment {
+  /**
+   * Checks if the given `key` is a valid parameter name.
+   * @param name to use in error messages identifying the invalid thing.
+   * @param key to check for validity.
+   * @throws `Error` if `key` is not valid.
+   */
+  static validatePathPart(name: string, key?: string): void {
+    if (key === undefined) {
+      throw new Error(`${name} may not be undefined.`);
+    } else if (!keyValidator.test(key)) {
+      throw new Error(
+        `${name} is not valid, ${key} doesn't match ${keyValidator}.`
+      );
+    }
+  }
+
   /** Whether or not the initial load from AWS was successfully completed. */
   isReady: Promise<boolean>;
   /** The LRU cache used for expiring values. */
@@ -229,15 +245,6 @@ export class Environment {
   }
 
   /**
-   * Checks if the given `key` is a valid parameter name.
-   * @param key to check for validity.
-   * @returns `true` if key may be used as a parameter name, `false` otherwise.
-   */
-  private isKey(key?: Key): boolean {
-    return key !== undefined && keyValidator.test(key);
-  }
-
-  /**
    * Refresh the values in the configuration cache.
    */
   private async refresh(): Promise<void> {
@@ -271,20 +278,6 @@ export class Environment {
   }
 
   /**
-   * Checks if the given `rootPath` is valid as the prefix of a fully
-   * qualified parameter name.
-   * @param rootPath to check for validity.
-   * @throws `Error` if `rootPath` is not valid.
-   */
-  private validateRootPath(rootPath: string): void {
-    if (!rootPathValidator.test(rootPath)) {
-      throw new Error(
-        `Root path is not valid, doesn't match ${rootPathValidator}.`
-      );
-    }
-  }
-
-  /**
    * Checks if the given `fqn` is a valid fully qualified parameter name.
    * @param fqn to check for validity.
    * @throws `Error` if `fqn` is not valid.
@@ -295,6 +288,8 @@ export class Environment {
         `Fully qualified name is too long, ${fqn.length}. Max is 1011.`
       );
     }
+    // TODO: Check ends with valid key
+    // TODO: Check starts with valid root path
   }
 
   /**
@@ -303,10 +298,20 @@ export class Environment {
    * @throws `Error` if `key` is not valid.
    */
   private validateKey(key?: Key): void {
-    if (key === undefined) {
-      throw new Error('Key is may not be undefined.');
-    } else if (!this.isKey(key)) {
-      throw new Error(`Key is not valid, doesn't match ${keyValidator}.`);
+    Environment.validatePathPart('Key', key);
+  }
+
+  /**
+   * Checks if the given `rootPath` is valid as the prefix of a fully
+   * qualified parameter name.
+   * @param rootPath to check for validity.
+   * @throws `Error` if `rootPath` is not valid.
+   */
+  private validateRootPath(rootPath: string): void {
+    if (!rootPathValidator.test(rootPath)) {
+      throw new Error(
+        `Root path is not valid, doesn't match ${rootPathValidator}.`
+      );
     }
   }
 }
