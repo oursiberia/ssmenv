@@ -16,7 +16,7 @@ interface Flags {
 
 interface Args extends Key, Stage, Value {}
 
-export default class VarSet extends Command {
+export class VarSet extends Command {
   static description = 'Set the value of a variable. Creates it if it does not exist, creates a new version if it does.';
 
   static examples = [

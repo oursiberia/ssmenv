@@ -11,7 +11,7 @@ interface Flags {
 
 interface Args extends Stage {} // tslint:disable-line no-empty-interface
 
-export default class EnvDotenv extends Command {
+export class EnvDotenv extends Command {
   static description = 'Generate .env compatible output from stored parameters.';
 
   static examples = [

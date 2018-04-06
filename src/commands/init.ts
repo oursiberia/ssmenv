@@ -31,7 +31,7 @@ interface Args extends Partial<Answers> {}
 /** Defines the information received as flags. */
 interface Flags {} // tslint:disable-line no-empty-interface
 
-export default class Init extends Command {
+export class Init extends Command {
   static description = 'Create a configuration files for your project.';
 
   static examples = [
