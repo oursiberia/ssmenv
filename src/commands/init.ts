@@ -1,32 +1,51 @@
-import { Command, flags } from '@oclif/command';
+import { Command } from '@oclif/command';
+import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
-import {
-  ACCESS_KEY_ID,
-  DEFAULT_CONFIG_PATH,
-  ROOT_PATH,
-  SECRET_KEY_ID,
-} from '../constants';
+import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
+
+// Defined to name Args interface properties as constants.
+const AWS_ACCESS = 'awsAccess';
+const AWS_SECRET = 'awsSecret';
+const ROOT_PATH = 'rootPath';
+
+/**
+ * Defines the interface of the answers received from `inquirer`
+ */
+interface Answers {
+  awsAccess: string;
+  awsSecret: string;
+  rootPath: string;
+}
+
+/**
+ * Defines the information received as positional arguments. It must be at least
+ * a subset of `Answers`.
+ */
+interface Args extends Partial<Answers> {}
+
+/** Defines the information received as flags. */
+interface Flags {} // tslint:disable-line no-empty-interface
 
 export default class Init extends Command {
   static description = 'Create a configuration files for your project.';
 
   static flags = {};
 
-  static args = [
+  static args: Parser.IArg[] = [
     {
       description: 'Root path for the project.',
       name: ROOT_PATH,
     },
     {
       description: 'AWS Access Key Id to use when interacting with AWS API.',
-      name: ACCESS_KEY_ID,
+      name: AWS_ACCESS,
     },
     {
       description: 'AWS Secret Key to use when interacting with AWS API.',
-      name: SECRET_KEY_ID,
+      name: AWS_SECRET,
     },
   ];
 
@@ -51,19 +70,19 @@ export default class Init extends Command {
   }
 
   async run() {
-    const { args, flags } = this.parse(Init);
+    const { args, flags } = this.parse<Flags, Args>(Init);
     const questions: Question[] = [
       {
         message: 'AWS Access Key ID',
-        name: ACCESS_KEY_ID,
+        name: AWS_ACCESS,
         type: 'input',
-        when: args[ACCESS_KEY_ID] === undefined,
+        when: args.awsAccess === undefined,
       },
       {
         message: 'AWS Secret Access Key',
-        name: SECRET_KEY_ID,
+        name: AWS_SECRET,
         type: 'input',
-        when: args[SECRET_KEY_ID] === undefined,
+        when: args.awsSecret === undefined,
       },
       {
         default: '/',
@@ -72,14 +91,14 @@ export default class Init extends Command {
         type: 'input',
         validate: Init.isValidRootPath,
         when:
-          args[ROOT_PATH] === undefined ||
-          Init.isValidRootPath(args[ROOT_PATH]) !== true,
+          args.rootPath === undefined ||
+          Init.isValidRootPath(args.rootPath) !== true,
       },
     ];
-    const answers = await prompt(questions);
-    const accessKeyId = args[ACCESS_KEY_ID] || answers[ACCESS_KEY_ID];
-    const secretAccessKey = args[SECRET_KEY_ID] || answers[SECRET_KEY_ID];
-    const rootPath = args[ROOT_PATH] || answers[ROOT_PATH];
+    const answers = await prompt<Answers>(questions);
+    const accessKeyId = args.awsAccess || answers.awsAccess;
+    const secretAccessKey = args.awsSecret || answers.awsSecret;
+    const rootPath = args.rootPath || answers.rootPath;
     // If checks didn't exit then we have valid values
     const projectConfig: ProjectConfig = {
       rootPath,

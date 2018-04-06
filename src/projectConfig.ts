@@ -2,12 +2,9 @@ import { SSM } from 'aws-sdk';
 import { mkdir, readFile, stat, writeFile } from 'fs';
 import { sep as pathSeparator } from 'path';
 import {
-  ACCESS_KEY_ID,
   AWS_FILE_NAME,
   DEFAULT_CONFIG_PATH,
   PROJECT_FILE_NAME,
-  ROOT_PATH,
-  SECRET_KEY_ID,
 } from './constants';
 import { Environment, Options } from './environment';
 import { Fn, Log } from './log';
