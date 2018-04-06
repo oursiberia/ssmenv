@@ -10,11 +10,11 @@ Manage environment variables with AWS SSM.
 [![Downloads/week](https://img.shields.io/npm/dw/ssmenv.svg)](https://npmjs.org/package/ssmenv)
 [![License](https://img.shields.io/npm/l/ssmenv.svg)](https://github.com/oursiberia/ssmenv/blob/master/package.json)
 
-<!-- toc -->
 * [Usage](#usage)
 * [Commands](#commands)
-<!-- tocstop -->
+
 # Usage
+
 <!-- usage -->
 ```sh-session
 $ npm install -g ssmenv
@@ -28,7 +28,16 @@ USAGE
 ...
 ```
 <!-- usagestop -->
+
+After install run `ssmenv init` to generate configuration files for the
+project.  The configuration files are places in the `.ssmenv` directory as
+`public.json` and `private.json`. `public.json` will only contain data that is
+not sensitive, it should be added to source control. `private.json` will
+contain sensitive data (such as AWS access key credentials) and should be
+ignored by source control.
+
 # Commands
+
 <!-- commands -->
 * [ssmenv env STAGE](#ssmenv-env-stage)
 * [ssmenv env:dotenv STAGE](#ssmenv-envdotenv-stage)
