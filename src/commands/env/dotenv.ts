@@ -1,4 +1,5 @@
 import { Command, flags } from '@oclif/command';
+import { args as Parser } from '@oclif/parser';
 
 import { STAGE } from '../../constants';
 import { getEnvironment } from '../../projectConfig';
@@ -20,7 +21,7 @@ export default class EnvDotenv extends Command {
     }),
   };
 
-  static args = [
+  static args: Parser.IArg[] = [
     {
       description: 'Stage to use for retrieving data. Appended to root path.',
       name: STAGE,

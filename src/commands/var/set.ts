@@ -1,5 +1,5 @@
 import { Command, flags } from '@oclif/command';
-import { args } from '@oclif/parser';
+import { args as Parser } from '@oclif/parser';
 
 import { KEY, STAGE, VALUE } from '../../constants';
 import { getEnvironment } from '../../projectConfig';
@@ -39,7 +39,7 @@ export default class VarSet extends Command {
     }),
   };
 
-  static args: args.IArg[] = [
+  static args: Parser.IArg[] = [
     {
       description: 'Stage to use for retrieving data. Appended to root path.',
       name: STAGE,
