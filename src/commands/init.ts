@@ -11,7 +11,7 @@ import { Environment } from '../environment';
 import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
 
 export default class Init extends Command {
-  static description = 'Create a configuration file for your project.';
+  static description = 'Create a configuration files for your project.';
 
   static flags = {};
 
