@@ -2,6 +2,7 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Stage, stagePositional } from '../../arguments/stage';
+import { make as makeExample } from '../../example';
 import { getEnvironment } from '../../projectConfig';
 
 interface Flags {
@@ -11,11 +12,24 @@ interface Flags {
 interface Args extends Stage {} // tslint:disable-line no-empty-interface
 
 export default class EnvDotenv extends Command {
-  static description = 'Create a .env file from stored parameters.';
+  static description = 'Generate .env compatible output from stored parameters.';
+
+  static examples = [
+    makeExample([
+      `# Write test stage to STDOUT; assumes "FOO" and "foo" are set as vars.`,
+      `$ ssmenv env:dotenv test`,
+      `FOO=bar`,
+      `foo=baz`,
+    ]),
+    makeExample([
+      `# Write test stage to .env.test`,
+      `$ ssmenv env:dotenv test > .env.test`,
+    ]),
+  ];
 
   static flags = {
     withDecryption: flags.boolean({
-      description: 'Attempt to decrypt parameters using KMS keys.',
+      description: 'Attempt to decrypt parameters using accessible KMS keys.',
     }),
   };
 

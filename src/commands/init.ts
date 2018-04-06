@@ -2,8 +2,10 @@ import { Command } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
+
 import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
+import { make as makeExample } from '../example';
 import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
@@ -31,6 +33,27 @@ interface Flags {} // tslint:disable-line no-empty-interface
 
 export default class Init extends Command {
   static description = 'Create a configuration files for your project.';
+
+  static examples = [
+    makeExample([
+      `# Create configuration with given parameters.`,
+      `$ ssmenv init / FOO bar`,
+      `Configuration written to .ssmenv/public.json and .ssmenv/private.json.`,
+      `* Recommend adding .ssmenv/public.json to source control.`,
+      `* Recommend ignoring .ssmenv/private.json in source control.`,
+    ]),
+    makeExample([
+      `# Create configuration by using prompts.`,
+      `# The value inside parentheses will be used as the default.`,
+      `$ ssmenv init`,
+      `? AWS Access Key ID`,
+      `? AWS Secret Access Key`,
+      `? Root Path (/)`,
+      `Configuration written to .ssmenv/public.json and .ssmenv/private.json.`,
+      `* Recommend adding .ssmenv/public.json to source control.`,
+      `* Recommend ignoring .ssmenv/private.json in source control.`,
+    ]),
+  ];
 
   static flags = {};
 
