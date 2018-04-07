@@ -18,7 +18,7 @@ $ npm install -g ssmenv
 $ ssmenv COMMAND
 running command...
 $ ssmenv (-v|--version|version)
-ssmenv/0.1.2 darwin-x64 node-v9.10.1
+ssmenv/0.1.3 darwin-x64 node-v9.10.1
 $ ssmenv --help [COMMAND]
 USAGE
   $ ssmenv COMMAND
@@ -70,7 +70,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/env.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env.ts)_
 
 ### ssmenv env:dotenv STAGE
 
@@ -96,7 +96,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env/dotenv.ts)_
 
 ## ssmenv env:dotenv STAGE
 
@@ -122,7 +122,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env/dotenv.ts)_
 
 ## ssmenv help [COMMAND]
 
@@ -172,7 +172,7 @@ EXAMPLES
   * Recommend ignoring .ssmenv/private.json in source control.
 ```
 
-_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/init.ts)_
 
 ## ssmenv var STAGE KEY VALUE
 
@@ -213,7 +213,7 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/var.ts)_
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var.ts)_
 
 ### ssmenv var:set STAGE KEY VALUE
 
@@ -254,7 +254,7 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var/set.ts)_
 
 ## ssmenv var:set STAGE KEY VALUE
 
@@ -295,5 +295,5 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.2/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var/set.ts)_
 <!-- commandsstop -->
