@@ -288,13 +288,14 @@ export class Environment {
   }
 
   /**
-   * Refresh the values in the configuration cache.
+   * Refresh the values in the configuration cache. This removes old values.
    */
   private async refresh(): Promise<void> {
     const parameters = await this.fetch();
-    parameters
+    const entries = parameters
       .filter(this.hasNameAndType.bind(this))
-      .forEach((param: Parameter) => this.cache.set(param.Name!, param));
+      .map(this.toLruEntry);
+    this.cache.load(entries);
   }
 
   /**
@@ -319,6 +320,20 @@ export class Environment {
         version: param.Version,
       };
     }
+  }
+
+  /**
+   * Convert the given `param` to an object conforming to the `LRUEntry`
+   * interface.
+   * @param param to be converted.
+   * @return an `LRUEntry` with `param` as value.
+   */
+  private toLruEntry(param: Parameter): LRU.LRUEntry<string, Parameter> {
+    return {
+      e: 0,
+      k: param.Name!,
+      v: param,
+    };
   }
 
   /**
