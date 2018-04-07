@@ -163,9 +163,7 @@ export class Environment {
    */
   async get(key: Key): Promise<Option<string>> {
     const isReady = await this.isReady;
-    const cacheKeys = this.cache.keys();
-    const isCached = cacheKeys.findIndex(cacheKey => cacheKey === key) !== -1;
-    const isStale = isCached && !this.cache.has(key);
+    const isStale = await this.isStale(key);
     if (!isReady) {
       return undefined;
     } else if (isStale) {
@@ -177,6 +175,19 @@ export class Environment {
       const parameter = this.cache.get(fqn);
       return parameter === undefined ? undefined : parameter.Value;
     }
+  }
+
+  /**
+   * Check if the environment has a value for the given key.
+   * @param key to search for.
+   * @returns `true` if `key` exists for this envrionment, `false` otherwise.
+   */
+  async has(key: Key): Promise<boolean> {
+    const isReady = await this.isReady;
+    if (!isReady) {
+      throw new Error('Environment was not ready.');
+    }
+    return this.isCached(key);
   }
 
   /**
@@ -285,6 +296,33 @@ export class Environment {
     const isSecure = param.Type === 'SecureString';
     const withDecryption = this.options.WithDecryption || false;
     return hasName && (isString || (withDecryption && isSecure));
+  }
+
+  /**
+   * Check that the given `key` is known to the cache.
+   * @param key for which to check.
+   * @returns `true` if the key is known to the cache, `false` otherwise.
+   */
+  private async isCached(key: Key): Promise<boolean> {
+    const isReady = await this.isReady;
+    const fqn = this.fqn(key);
+    const cacheKeys = this.cache.keys();
+    return cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
+  }
+
+  /**
+   * Check that the given `key` is known to the cache but has a stale value.
+   * @param key to check.
+   * @returns `true` if the key is known to the cache and the cached value has
+   *    expired; `false` otherwise.
+   */
+  private async isStale(key: Key): Promise<boolean> {
+    const isCached = await this.isCached(key);
+    const fqn = this.fqn(key);
+    // returns false if `key` isn't cached or if `key` never existed
+    const isNotStaleOrCached = await this.cache.has(fqn);
+    // given that key exists (`isCached`) then `isStaleOrNotCached` only means `isStale`
+    return isCached && !isNotStaleOrCached;
   }
 
   /**
