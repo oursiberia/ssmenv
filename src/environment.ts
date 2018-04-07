@@ -29,7 +29,7 @@ export type Key = string;
 export type Option<T> = T | undefined;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
 export type Options = Partial<AWS.SSM.GetParametersByPathRequest>;
-/** Type alias for `AWS.SSM.Paramter`. */
+/** Type alias for `AWS.SSM.ParamterHistory`. */
 export type Parameter = AWS.SSM.ParameterHistory;
 /** Type alias for `AWS.SSM.PutParameterRequest`. */
 export type PutRequest = AWS.SSM.PutParameterRequest;
