@@ -9,3 +9,6 @@
 # Project specific
 .ssmenv
 .env.*
+
+# Ignore pkg output
+/dist
