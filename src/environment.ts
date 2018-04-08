@@ -1,5 +1,6 @@
 import { AWSError, SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
+import { AwsSsmProxy } from './environment/AwsSsmProxy';
 import { Tag } from './tag';
 
 /** Regex for a valid path part, meant to be reused as `source`. */
@@ -116,7 +117,7 @@ export class Environment {
   /** Options to include when requesting parameters. */
   private options: Options;
   /** The `AWS.SSM` instance used to retrieve data. */
-  private ssm: SSM;
+  private ssm: AwsSsmProxy;
 
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
@@ -131,7 +132,7 @@ export class Environment {
     this.fqnPrefix = fqnPrefix;
     this.keyMatcher = new RegExp(`^${fqnPrefix}/(${PART.source})$`);
     this.options = options;
-    this.ssm = ssm;
+    this.ssm = new AwsSsmProxy(ssm);
     this.isReady = this.refresh()
       .then(() => true)
       .catch(() => false);
@@ -206,25 +207,16 @@ export class Environment {
       Type: 'String',
       Value: value,
     };
-    return new Promise<EnvironmentVariable>((resolve, reject) => {
-      this.ssm.putParameter(request, (err: AWSError, result: PutResult) => {
-        if (err) {
-          reject(err);
-        } else if (result.Version === undefined) {
-          reject(new Error(`No version returned when setting ${fqn}`));
-        } else {
-          const parameter: Parameter = {
-            Description: description,
-            Name: fqn,
-            Type: request.Type,
-            Value: request.Value,
-            Version: result.Version,
-          };
-          this.cache.set(fqn, parameter);
-          resolve(this.toEnvironmentVariable(parameter));
-        }
-      });
-    });
+    const result = await this.ssm.putParameter(request);
+    const parameter: Parameter = {
+      Description: description,
+      Name: fqn,
+      Type: request.Type,
+      Value: request.Value,
+      Version: result.Version,
+    };
+    this.cache.set(fqn, parameter);
+    return this.toEnvironmentVariable(parameter);
   }
 
   /**
@@ -238,27 +230,17 @@ export class Environment {
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
    * parameter tree for the given fqnPrefix.
-   * @returns {Promise<Parameter[]>} the array of `AWS.SSM.Parameter` values
+   * @returns {Promise<Parameter[]>} the array of `SSM.Parameter` values
    *    found when using the `fqnPrefix` as a path.
    */
-  private fetch(): Promise<Parameter[]> {
+  private async fetch(): Promise<Parameter[]> {
     const options: SSM.GetParametersByPathRequest = {
       ...this.options,
       Path: `${this.fqnPrefix}`,
       Recursive: true,
     };
-    return new Promise((resolve, reject) => {
-      this.ssm.getParametersByPath(
-        options,
-        (err: AWSError, data: SSM.GetParametersByPathResult) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data.Parameters || []);
-          }
-        }
-      );
-    });
+    const result = await this.ssm.getParametersByPath(options);
+    return result.Parameters || [];
   }
 
   /**
