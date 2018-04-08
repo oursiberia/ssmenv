@@ -50,7 +50,7 @@ export interface EnvironmentVariable {
   /** Tags applied to the parameter. */
   tags?: Tag[];
   /** Value of the parameter. */
-  value?: string;
+  value: string;
   /** Version of the parameter. */
   version?: number;
 }
@@ -331,7 +331,7 @@ export class Environment {
     const path = param.Name || '';
     const data = path.match(this.keyMatcher);
     const key = (data && data[1]) || undefined;
-    if (key === undefined) {
+    if (key === undefined || param.Value === undefined) {
       return undefined;
     } else {
       return {
