@@ -222,6 +222,31 @@ export class Environment {
   }
 
   /**
+   * Apply `tags` to the variable identified by `key`.
+   * @param key of the parameter to be combined with `fqnPrefix`.
+   * @param tags to add or overwrite.
+   * @returns The `EnvironmentVariable` that was modified including the `tags`.
+   */
+  async tag(key: Key, tags: Tag[] = []): Promise<EnvironmentVariable> {
+    const fqn = this.fqn(key);
+    const request: SSM.AddTagsToResourceRequest = {
+      ResourceId: fqn,
+      ResourceType: 'Parameter',
+      Tags: tags,
+    };
+    const variable = await this.get(key);
+    if (variable === undefined) {
+      throw new Error(`${fqn} is not a known parameter.`);
+    }
+    const result = await this.ssm.addTagsToResource(request);
+    // Put tags on variable
+    return {
+      ...variable,
+      tags,
+    };
+  }
+
+  /**
    * Get all the `EnvironmentVariable` instances we know about.
    * @returns all stored `EnvironmentVariable` instances.
    */
