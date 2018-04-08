@@ -18,7 +18,7 @@ $ npm install -g ssmenv
 $ ssmenv COMMAND
 running command...
 $ ssmenv (-v|--version|version)
-ssmenv/0.1.3 darwin-x64 node-v9.10.1
+ssmenv/0.2.0 darwin-x64 node-v9.11.1
 $ ssmenv --help [COMMAND]
 USAGE
   $ ssmenv COMMAND
@@ -45,6 +45,7 @@ for input.
 * [ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]](#ssmenv-init-rootpath-awsaccess-awssecret)
 * [ssmenv var STAGE KEY VALUE](#ssmenv-var-stage-key-value)
 * [ssmenv var:set STAGE KEY VALUE](#ssmenv-varset-stage-key-value)
+* [ssmenv var:tag STAGE KEY](#ssmenv-vartag-stage-key)
 
 ## ssmenv env STAGE
 
@@ -70,7 +71,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env.ts)_
 
 ### ssmenv env:dotenv STAGE
 
@@ -96,7 +97,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env/dotenv.ts)_
 
 ## ssmenv env:dotenv STAGE
 
@@ -122,7 +123,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env/dotenv.ts)_
 
 ## ssmenv help [COMMAND]
 
@@ -172,7 +173,7 @@ EXAMPLES
   * Recommend ignoring .ssmenv/private.json in source control.
 ```
 
-_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/init.ts)_
 
 ## ssmenv var STAGE KEY VALUE
 
@@ -188,9 +189,7 @@ ARGUMENTS
   VALUE  Value of the variable to set.
 
 OPTIONS
-  -d, --description=description     Description of the variable.
-  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
-  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+  -d, --description=description  Description of the variable.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
@@ -213,7 +212,7 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var.ts)_
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var.ts)_
 
 ### ssmenv var:set STAGE KEY VALUE
 
@@ -229,9 +228,7 @@ ARGUMENTS
   VALUE  Value of the variable to set.
 
 OPTIONS
-  -d, --description=description     Description of the variable.
-  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
-  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+  -d, --description=description  Description of the variable.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
@@ -254,7 +251,32 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/set.ts)_
+
+### ssmenv var:tag STAGE KEY
+
+Add tags to a variable. Variable must exist.
+
+```
+USAGE
+  $ ssmenv var:tag STAGE KEY
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+
+OPTIONS
+  -t, --tag=TagName:TagValue  Tags to set on the variable as TagName:TagValue.
+
+EXAMPLES
+  # Set Client tag of FOO variable in test stage.
+  $ ssmenv var:set test FOO --tag=Client:baz
+
+  # Set multiple tags on FOO variable for staging.
+  $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
+```
+
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/tag.ts)_
 
 ## ssmenv var:set STAGE KEY VALUE
 
@@ -270,9 +292,7 @@ ARGUMENTS
   VALUE  Value of the variable to set.
 
 OPTIONS
-  -d, --description=description     Description of the variable.
-  -k, --withEncryption=KMS Key ARN  Attempt to encrypt parameter using KMS key name.
-  -t, --tag=TagName:TagValue        Tags to set on the variable as TagName:TagValue.
+  -d, --description=description  Description of the variable.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
@@ -295,5 +315,30 @@ EXAMPLES
   }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.1.3/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/set.ts)_
+
+## ssmenv var:tag STAGE KEY
+
+Add tags to a variable. Variable must exist.
+
+```
+USAGE
+  $ ssmenv var:tag STAGE KEY
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+
+OPTIONS
+  -t, --tag=TagName:TagValue  Tags to set on the variable as TagName:TagValue.
+
+EXAMPLES
+  # Set Client tag of FOO variable in test stage.
+  $ ssmenv var:set test FOO --tag=Client:baz
+
+  # Set multiple tags on FOO variable for staging.
+  $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
+```
+
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/tag.ts)_
 <!-- commandsstop -->
