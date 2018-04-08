@@ -1,4 +1,4 @@
-import * as AWS from 'aws-sdk';
+import { AWSError, SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
 import { Tag } from './tag';
 
@@ -28,13 +28,13 @@ export type Key = string;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
-export type Options = Partial<AWS.SSM.GetParametersByPathRequest>;
+export type Options = Partial<SSM.GetParametersByPathRequest>;
 /** Type alias for `AWS.SSM.ParamterHistory`. */
-export type Parameter = AWS.SSM.ParameterHistory;
+export type Parameter = SSM.ParameterHistory;
 /** Type alias for `AWS.SSM.PutParameterRequest`. */
-export type PutRequest = AWS.SSM.PutParameterRequest;
+export type PutRequest = SSM.PutParameterRequest;
 /** Type alias for `AWS.SSM.PutParameterResult`. */
-export type PutResult = AWS.SSM.PutParameterResult;
+export type PutResult = SSM.PutParameterResult;
 
 /**
  * Structure of an environment variable.
@@ -116,7 +116,7 @@ export class Environment {
   /** Options to include when requesting parameters. */
   private options: Options;
   /** The `AWS.SSM` instance used to retrieve data. */
-  private ssm: AWS.SSM;
+  private ssm: SSM;
 
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
@@ -125,7 +125,7 @@ export class Environment {
    * @param {AWS.SSM} ssm to use for retrieving parameters.
    * @param {Options} options for requesting parameters.
    */
-  constructor(fqnPrefix: string, ssm: AWS.SSM, options: Options = {}) {
+  constructor(fqnPrefix: string, ssm: SSM, options: Options = {}) {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;
@@ -207,7 +207,7 @@ export class Environment {
       Value: value,
     };
     return new Promise<EnvironmentVariable>((resolve, reject) => {
-      this.ssm.putParameter(request, (err: AWS.AWSError, result: PutResult) => {
+      this.ssm.putParameter(request, (err: AWSError, result: PutResult) => {
         if (err) {
           reject(err);
         } else if (result.Version === undefined) {
@@ -242,7 +242,7 @@ export class Environment {
    *    found when using the `fqnPrefix` as a path.
    */
   private fetch(): Promise<Parameter[]> {
-    const options: AWS.SSM.GetParametersByPathRequest = {
+    const options: SSM.GetParametersByPathRequest = {
       ...this.options,
       Path: `${this.fqnPrefix}`,
       Recursive: true,
@@ -250,7 +250,7 @@ export class Environment {
     return new Promise((resolve, reject) => {
       this.ssm.getParametersByPath(
         options,
-        (err: AWS.AWSError, data: AWS.SSM.GetParametersByPathResult) => {
+        (err: AWSError, data: SSM.GetParametersByPathResult) => {
           if (err) {
             reject(err);
           } else {
