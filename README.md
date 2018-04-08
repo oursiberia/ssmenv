@@ -27,7 +27,7 @@ USAGE
 <!-- usagestop -->
 
 After install run `ssmenv init` to generate configuration files for the
-project.  The configuration files are places in the `.ssmenv` directory as
+project.  The configuration files are placed in the `.ssmenv` directory as
 `public.json` and `private.json`. `public.json` will only contain data that is
 not sensitive, it should be added to source control. `private.json` will
 contain sensitive data (such as AWS access key credentials) and should be
