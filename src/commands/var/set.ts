@@ -6,11 +6,10 @@ import { Stage, stagePositional } from '../../arguments/stage';
 import { Value, valuePositional } from '../../arguments/value';
 import { make as makeExample } from '../../example';
 import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
-import { tagFlag, WithTagFlag } from '../../flags/tag';
 import { getEnvironment } from '../../projectConfig';
 import { parseTag, Tag, validateTag } from '../../tag';
 
-interface Flags extends WithDescriptionFlag, WithTagFlag {
+interface Flags extends WithDescriptionFlag {
   withEncryption?: string;
 }
 
@@ -45,7 +44,6 @@ export class VarSet extends Command {
 
   static flags = {
     description: descriptionFlag,
-    tag: tagFlag,
     withEncryption: flags.string({
       char: 'k',
       description: 'Attempt to encrypt parameter using KMS key name.',
