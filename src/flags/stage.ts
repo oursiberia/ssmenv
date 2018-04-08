@@ -15,5 +15,6 @@ export const stageFlag = flags.string({
   description: 'Tags to set on the variable as TagName:TagValue.',
   helpValue: 'stage',
   multiple: true,
+  name: 'stage',
   parse: validateStage,
 });

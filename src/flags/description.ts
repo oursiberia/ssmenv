@@ -7,4 +7,5 @@ export interface WithDescriptionFlag {
 export const descriptionFlag = flags.string({
   char: 'd',
   description: 'Description of the variable.',
+  name: 'description',
 });

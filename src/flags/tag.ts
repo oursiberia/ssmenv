@@ -10,5 +10,6 @@ export const tagFlag = flags.string({
   description: 'Tags to set on the variable as TagName:TagValue.',
   helpValue: 'TagName:TagValue',
   multiple: true,
+  name: 'tag',
   parse: validateTag,
 });
