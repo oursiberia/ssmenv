@@ -9,9 +9,7 @@ import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
 import { getEnvironment } from '../../projectConfig';
 import { parseTag, Tag, validateTag } from '../../tag';
 
-interface Flags extends WithDescriptionFlag {
-  withEncryption?: string;
-}
+interface Flags extends WithDescriptionFlag {} // tslint:disable-line no-empty-interface
 
 interface Args extends Key, Stage, Value {}
 
@@ -44,11 +42,6 @@ export class VarSet extends Command {
 
   static flags = {
     description: descriptionFlag,
-    withEncryption: flags.string({
-      char: 'k',
-      description: 'Attempt to encrypt parameter using KMS key name.',
-      helpValue: 'KMS Key ARN',
-    }),
   };
 
   static args: Parser.IArg[] = [
