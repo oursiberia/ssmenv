@@ -216,7 +216,7 @@ export class Environment {
       Version: result.Version,
     };
     this.cache.set(fqn, parameter);
-    return this.toEnvironmentVariable(parameter);
+    return this.toEnvironmentVariable(parameter)!;
   }
 
   /**
