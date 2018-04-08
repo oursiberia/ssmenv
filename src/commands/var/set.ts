@@ -62,6 +62,5 @@ export class VarSet extends Command {
     const { key, stage, value } = args;
     const environment = await getEnvironment(stage);
     const result = await environment.put(key, value, flags.description);
-    this.log(JSON.stringify(result, undefined, 2));
   }
 }
