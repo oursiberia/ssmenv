@@ -47,6 +47,6 @@ export class EnvDotenv extends Command {
     }
     config.variables
       .map(envVar => `${envVar.key.toUpperCase()}=${envVar.value}`)
-      .forEach(this.log.bind(this));
+      .forEach(line => this.log(line));
   }
 }

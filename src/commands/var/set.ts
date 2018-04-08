@@ -5,14 +5,11 @@ import { Key, keyPositional } from '../../arguments/key';
 import { Stage, stagePositional } from '../../arguments/stage';
 import { Value, valuePositional } from '../../arguments/value';
 import { make as makeExample } from '../../example';
+import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
 import { getEnvironment } from '../../projectConfig';
 import { parseTag, Tag, validateTag } from '../../tag';
 
-interface Flags {
-  tag: string[];
-  description?: string;
-  withEncryption?: string;
-}
+interface Flags extends WithDescriptionFlag {} // tslint:disable-line no-empty-interface
 
 interface Args extends Key, Stage, Value {}
 
@@ -44,22 +41,7 @@ export class VarSet extends Command {
   ];
 
   static flags = {
-    description: flags.string({
-      char: 'd',
-      description: 'Description of the variable.',
-    }),
-    tag: flags.string({
-      char: 't',
-      description: 'Tags to set on the variable as TagName:TagValue.',
-      helpValue: 'TagName:TagValue',
-      multiple: true,
-      parse: validateTag,
-    }),
-    withEncryption: flags.string({
-      char: 'k',
-      description: 'Attempt to encrypt parameter using KMS key name.',
-      helpValue: 'KMS Key ARN',
-    }),
+    description: descriptionFlag,
   };
 
   static args: Parser.IArg[] = [
@@ -73,6 +55,5 @@ export class VarSet extends Command {
     const { key, stage, value } = args;
     const environment = await getEnvironment(stage);
     const result = await environment.put(key, value, flags.description);
-    this.log(JSON.stringify(result, undefined, 2));
   }
 }

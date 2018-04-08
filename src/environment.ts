@@ -1,5 +1,6 @@
-import * as AWS from 'aws-sdk';
+import { AWSError, SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
+import { AwsSsmProxy } from './environment/AwsSsmProxy';
 import { Tag } from './tag';
 
 /** Regex for a valid path part, meant to be reused as `source`. */
@@ -20,7 +21,7 @@ const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
 const rootPathRegex = new RegExp(`^/((${PART.source})(/${PART.source})*?/)?$`);
 
 /** Type alias for a function converting a string to another, parameterized type. */
-export type Convert<T> = (value: string) => T;
+export type Convert<T> = (value: EnvironmentVariable) => T;
 /** string alias for fully qualified parameter name. */
 export type FQN = string;
 /** string alias for parameter name (not fully qualified). */
@@ -28,13 +29,13 @@ export type Key = string;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
 /** Type alias for `AWS.SSM.GetParametersByPathResult`. */
-export type Options = Partial<AWS.SSM.GetParametersByPathRequest>;
-/** Type alias for `AWS.SSM.Paramter`. */
-export type Parameter = AWS.SSM.ParameterHistory;
+export type Options = Partial<SSM.GetParametersByPathRequest>;
+/** Type alias for `AWS.SSM.ParamterHistory`. */
+export type Parameter = SSM.ParameterHistory;
 /** Type alias for `AWS.SSM.PutParameterRequest`. */
-export type PutRequest = AWS.SSM.PutParameterRequest;
+export type PutRequest = SSM.PutParameterRequest;
 /** Type alias for `AWS.SSM.PutParameterResult`. */
-export type PutResult = AWS.SSM.PutParameterResult;
+export type PutResult = SSM.PutParameterResult;
 
 /**
  * Structure of an environment variable.
@@ -49,7 +50,7 @@ export interface EnvironmentVariable {
   /** Tags applied to the parameter. */
   tags?: Tag[];
   /** Value of the parameter. */
-  value?: string;
+  value: string;
   /** Version of the parameter. */
   version?: number;
 }
@@ -116,7 +117,7 @@ export class Environment {
   /** Options to include when requesting parameters. */
   private options: Options;
   /** The `AWS.SSM` instance used to retrieve data. */
-  private ssm: AWS.SSM;
+  private ssm: AwsSsmProxy;
 
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
@@ -125,13 +126,13 @@ export class Environment {
    * @param {AWS.SSM} ssm to use for retrieving parameters.
    * @param {Options} options for requesting parameters.
    */
-  constructor(fqnPrefix: string, ssm: AWS.SSM, options: Options = {}) {
+  constructor(fqnPrefix: string, ssm: SSM, options: Options = {}) {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;
     this.keyMatcher = new RegExp(`^${fqnPrefix}/(${PART.source})$`);
     this.options = options;
-    this.ssm = ssm;
+    this.ssm = new AwsSsmProxy(ssm);
     this.isReady = this.refresh()
       .then(() => true)
       .catch(() => false);
@@ -161,11 +162,9 @@ export class Environment {
    * @returns {undefined | string} `undefined` if a value for `key` can not be
    *    found, the found `string` value otherwise.
    */
-  async get(key: Key): Promise<Option<string>> {
+  async get(key: Key): Promise<Option<EnvironmentVariable>> {
     const isReady = await this.isReady;
-    const cacheKeys = this.cache.keys();
-    const isCached = cacheKeys.findIndex(cacheKey => cacheKey === key) !== -1;
-    const isStale = isCached && !this.cache.has(key);
+    const isStale = await this.isStale(key);
     if (!isReady) {
       return undefined;
     } else if (isStale) {
@@ -175,8 +174,23 @@ export class Environment {
     } else {
       const fqn = this.fqn(key);
       const parameter = this.cache.get(fqn);
-      return parameter === undefined ? undefined : parameter.Value;
+      return parameter === undefined
+        ? undefined
+        : this.toEnvironmentVariable(parameter);
     }
+  }
+
+  /**
+   * Check if the environment has a value for the given key.
+   * @param key to search for.
+   * @returns `true` if `key` exists for this envrionment, `false` otherwise.
+   */
+  async has(key: Key): Promise<boolean> {
+    const isReady = await this.isReady;
+    if (!isReady) {
+      throw new Error('Environment was not ready.');
+    }
+    return this.isCached(key);
   }
 
   /**
@@ -195,25 +209,41 @@ export class Environment {
       Type: 'String',
       Value: value,
     };
-    return new Promise<EnvironmentVariable>((resolve, reject) => {
-      this.ssm.putParameter(request, (err: AWS.AWSError, result: PutResult) => {
-        if (err) {
-          reject(err);
-        } else if (result.Version === undefined) {
-          reject(new Error(`No version returned when setting ${fqn}`));
-        } else {
-          const parameter: Parameter = {
-            Description: description,
-            Name: fqn,
-            Type: request.Type,
-            Value: request.Value,
-            Version: result.Version,
-          };
-          this.cache.set(fqn, parameter);
-          resolve(this.toEnvironmentVariable(parameter));
-        }
-      });
-    });
+    const result = await this.ssm.putParameter(request);
+    const parameter: Parameter = {
+      Description: description,
+      Name: fqn,
+      Type: request.Type,
+      Value: request.Value,
+      Version: result.Version,
+    };
+    this.cache.set(fqn, parameter);
+    return this.toEnvironmentVariable(parameter)!;
+  }
+
+  /**
+   * Apply `tags` to the variable identified by `key`.
+   * @param key of the parameter to be combined with `fqnPrefix`.
+   * @param tags to add or overwrite.
+   * @returns The `EnvironmentVariable` that was modified including the `tags`.
+   */
+  async tag(key: Key, tags: Tag[] = []): Promise<EnvironmentVariable> {
+    const fqn = this.fqn(key);
+    const request: SSM.AddTagsToResourceRequest = {
+      ResourceId: fqn,
+      ResourceType: 'Parameter',
+      Tags: tags,
+    };
+    const variable = await this.get(key);
+    if (variable === undefined) {
+      throw new Error(`${fqn} is not a known parameter.`);
+    }
+    const result = await this.ssm.addTagsToResource(request);
+    // Put tags on variable
+    return {
+      ...variable,
+      tags,
+    };
   }
 
   /**
@@ -227,27 +257,17 @@ export class Environment {
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
    * parameter tree for the given fqnPrefix.
-   * @returns {Promise<Parameter[]>} the array of `AWS.SSM.Parameter` values
+   * @returns {Promise<Parameter[]>} the array of `SSM.Parameter` values
    *    found when using the `fqnPrefix` as a path.
    */
-  private fetch(): Promise<Parameter[]> {
-    const options: AWS.SSM.GetParametersByPathRequest = {
+  private async fetch(): Promise<Parameter[]> {
+    const options: SSM.GetParametersByPathRequest = {
       ...this.options,
       Path: `${this.fqnPrefix}`,
       Recursive: true,
     };
-    return new Promise((resolve, reject) => {
-      this.ssm.getParametersByPath(
-        options,
-        (err: AWS.AWSError, data: AWS.SSM.GetParametersByPathResult) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data.Parameters || []);
-          }
-        }
-      );
-    });
+    const result = await this.ssm.getParametersByPath(options);
+    return result.Parameters || [];
   }
 
   /**
@@ -288,13 +308,41 @@ export class Environment {
   }
 
   /**
-   * Refresh the values in the configuration cache.
+   * Check that the given `key` is known to the cache.
+   * @param key for which to check.
+   * @returns `true` if the key is known to the cache, `false` otherwise.
+   */
+  private async isCached(key: Key): Promise<boolean> {
+    const isReady = await this.isReady;
+    const fqn = this.fqn(key);
+    const cacheKeys = this.cache.keys();
+    return cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
+  }
+
+  /**
+   * Check that the given `key` is known to the cache but has a stale value.
+   * @param key to check.
+   * @returns `true` if the key is known to the cache and the cached value has
+   *    expired; `false` otherwise.
+   */
+  private async isStale(key: Key): Promise<boolean> {
+    const isCached = await this.isCached(key);
+    const fqn = this.fqn(key);
+    // returns false if `key` isn't cached or if `key` never existed
+    const isNotStaleOrCached = await this.cache.has(fqn);
+    // given that key exists (`isCached`) then `isStaleOrNotCached` only means `isStale`
+    return isCached && !isNotStaleOrCached;
+  }
+
+  /**
+   * Refresh the values in the configuration cache. This removes old values.
    */
   private async refresh(): Promise<void> {
     const parameters = await this.fetch();
-    parameters
+    const entries = parameters
       .filter(this.hasNameAndType.bind(this))
-      .forEach((param: Parameter) => this.cache.set(param.Name!, param));
+      .map(this.toLruEntry);
+    this.cache.load(entries);
   }
 
   /**
@@ -308,7 +356,7 @@ export class Environment {
     const path = param.Name || '';
     const data = path.match(this.keyMatcher);
     const key = (data && data[1]) || undefined;
-    if (key === undefined) {
+    if (key === undefined || param.Value === undefined) {
       return undefined;
     } else {
       return {
@@ -319,6 +367,20 @@ export class Environment {
         version: param.Version,
       };
     }
+  }
+
+  /**
+   * Convert the given `param` to an object conforming to the `LRUEntry`
+   * interface.
+   * @param param to be converted.
+   * @return an `LRUEntry` with `param` as value.
+   */
+  private toLruEntry(param: Parameter): LRU.LRUEntry<string, Parameter> {
+    return {
+      e: 0,
+      k: param.Name!,
+      v: param,
+    };
   }
 
   /**
