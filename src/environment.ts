@@ -21,7 +21,7 @@ const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
 const rootPathRegex = new RegExp(`^/((${PART.source})(/${PART.source})*?/)?$`);
 
 /** Type alias for a function converting a string to another, parameterized type. */
-export type Convert<T> = (value: string) => T;
+export type Convert<T> = (value: EnvironmentVariable) => T;
 /** string alias for fully qualified parameter name. */
 export type FQN = string;
 /** string alias for parameter name (not fully qualified). */
@@ -162,7 +162,7 @@ export class Environment {
    * @returns {undefined | string} `undefined` if a value for `key` can not be
    *    found, the found `string` value otherwise.
    */
-  async get(key: Key): Promise<Option<string>> {
+  async get(key: Key): Promise<Option<EnvironmentVariable>> {
     const isReady = await this.isReady;
     const isStale = await this.isStale(key);
     if (!isReady) {
@@ -174,7 +174,9 @@ export class Environment {
     } else {
       const fqn = this.fqn(key);
       const parameter = this.cache.get(fqn);
-      return parameter === undefined ? undefined : parameter.Value;
+      return parameter === undefined
+        ? undefined
+        : this.toEnvironmentVariable(parameter);
     }
   }
 
