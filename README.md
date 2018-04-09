@@ -18,7 +18,7 @@ $ npm install -g ssmenv
 $ ssmenv COMMAND
 running command...
 $ ssmenv (-v|--version|version)
-ssmenv/0.2.0 darwin-x64 node-v9.11.1
+ssmenv/0.3.0 darwin-x64 node-v9.11.1
 $ ssmenv --help [COMMAND]
 USAGE
   $ ssmenv COMMAND
@@ -44,9 +44,11 @@ for input.
 <!-- commands -->
 * [ssmenv env STAGE](#ssmenv-env-stage)
 * [ssmenv env:dotenv STAGE](#ssmenv-envdotenv-stage)
+* [ssmenv env:list](#ssmenv-envlist)
 * [ssmenv help [COMMAND]](#ssmenv-help-command)
 * [ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]](#ssmenv-init-rootpath-awsaccess-awssecret)
 * [ssmenv var STAGE KEY VALUE](#ssmenv-var-stage-key-value)
+* [ssmenv var:del STAGE KEY](#ssmenv-vardel-stage-key)
 * [ssmenv var:set STAGE KEY VALUE](#ssmenv-varset-stage-key-value)
 * [ssmenv var:tag STAGE KEY](#ssmenv-vartag-stage-key)
 
@@ -74,7 +76,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env.ts)_
 
 ### ssmenv env:dotenv STAGE
 
@@ -100,7 +102,30 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/dotenv.ts)_
+
+### ssmenv env:list
+
+List the known stages or environments, ignoring configured `rootPath`.
+
+```
+USAGE
+  $ ssmenv env:list
+
+DESCRIPTION
+  A stage or environment is considered any path with a direct child path holding a value.
+
+EXAMPLE
+  # List out the full paths to all known stages.
+  $ ssmenv env:list
+  /client/project/dev
+  /client/project/production
+  /client/project/test
+  /otherclient/test_project/production
+  /otherproject/dev
+```
+
+_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/list.ts)_
 
 ## ssmenv env:dotenv STAGE
 
@@ -126,7 +151,30 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/dotenv.ts)_
+
+## ssmenv env:list
+
+List the known stages or environments, ignoring configured `rootPath`.
+
+```
+USAGE
+  $ ssmenv env:list
+
+DESCRIPTION
+  A stage or environment is considered any path with a direct child path holding a value.
+
+EXAMPLE
+  # List out the full paths to all known stages.
+  $ ssmenv env:list
+  /client/project/dev
+  /client/project/production
+  /client/project/test
+  /otherclient/test_project/production
+  /otherproject/dev
+```
+
+_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/list.ts)_
 
 ## ssmenv help [COMMAND]
 
@@ -143,11 +191,11 @@ OPTIONS
   --all  see all commands in CLI
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.2/src/commands/help.ts)_
+_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v1.2.3/src/commands/help.ts)_
 
 ## ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]
 
-Create a configuration files for your project.
+Create the configuration files for your project.
 
 ```
 USAGE
@@ -157,6 +205,9 @@ ARGUMENTS
   ROOTPATH   Root path for the project.
   AWSACCESS  AWS Access Key Id to use when interacting with AWS API.
   AWSSECRET  AWS Secret Key to use when interacting with AWS API.
+
+OPTIONS
+  -q, --quiet  Suppress informative but unnecessary output.
 
 EXAMPLES
   # Create configuration with given parameters.
@@ -176,7 +227,7 @@ EXAMPLES
   * Recommend ignoring .ssmenv/private.json in source control.
 ```
 
-_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/init.ts)_
 
 ## ssmenv var STAGE KEY VALUE
 
@@ -197,25 +248,31 @@ OPTIONS
 EXAMPLES
   # Set value of FOO variable in test stage.
   $ ssmenv var:set test FOO bar
-  {
-     "key": "FOO",
-     "path": "/test/FOO",
-     "value": "bar",
-     "version": 1
-  }
 
   # Set value of FOO variable for staging with a description.
   $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
-  {
-     "key": "FOO",
-     "path": "/staging/FOO",
-     "description": "A description of FOO"
-     "value": "bar baz",
-     "version": 1
-  }
 ```
 
-_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var.ts)_
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var.ts)_
+
+### ssmenv var:del STAGE KEY
+
+Delete a variable.
+
+```
+USAGE
+  $ ssmenv var:del STAGE KEY
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+
+EXAMPLE
+  # Delete variable FOO in test stage.
+  $ ssmenv var:del test FOO
+```
+
+_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/del.ts)_
 
 ### ssmenv var:set STAGE KEY VALUE
 
@@ -236,25 +293,12 @@ OPTIONS
 EXAMPLES
   # Set value of FOO variable in test stage.
   $ ssmenv var:set test FOO bar
-  {
-     "key": "FOO",
-     "path": "/test/FOO",
-     "value": "bar",
-     "version": 1
-  }
 
   # Set value of FOO variable for staging with a description.
   $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
-  {
-     "key": "FOO",
-     "path": "/staging/FOO",
-     "description": "A description of FOO"
-     "value": "bar baz",
-     "version": 1
-  }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/set.ts)_
 
 ### ssmenv var:tag STAGE KEY
 
@@ -279,7 +323,26 @@ EXAMPLES
   $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
 ```
 
-_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/tag.ts)_
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/tag.ts)_
+
+## ssmenv var:del STAGE KEY
+
+Delete a variable.
+
+```
+USAGE
+  $ ssmenv var:del STAGE KEY
+
+ARGUMENTS
+  STAGE  Stage to use for retrieving data. Appended to root path.
+  KEY    Key to use when setting the variable; AKA variable name.
+
+EXAMPLE
+  # Delete variable FOO in test stage.
+  $ ssmenv var:del test FOO
+```
+
+_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/del.ts)_
 
 ## ssmenv var:set STAGE KEY VALUE
 
@@ -300,25 +363,12 @@ OPTIONS
 EXAMPLES
   # Set value of FOO variable in test stage.
   $ ssmenv var:set test FOO bar
-  {
-     "key": "FOO",
-     "path": "/test/FOO",
-     "value": "bar",
-     "version": 1
-  }
 
   # Set value of FOO variable for staging with a description.
   $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
-  {
-     "key": "FOO",
-     "path": "/staging/FOO",
-     "description": "A description of FOO"
-     "value": "bar baz",
-     "version": 1
-  }
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/set.ts)_
 
 ## ssmenv var:tag STAGE KEY
 
@@ -343,5 +393,5 @@ EXAMPLES
   $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
 ```
 
-_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.2.0/src/commands/var/tag.ts)_
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/tag.ts)_
 <!-- commandsstop -->

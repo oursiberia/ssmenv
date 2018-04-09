@@ -1,7 +1,7 @@
 {
   "name": "ssmenv",
   "description": "Manage environment variables with AWS SSM.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Bryan Swift",
   "bin": {
     "ssmenv": "./bin/run"
