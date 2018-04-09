@@ -33,7 +33,7 @@ interface Args extends Partial<Answers> {}
 interface Flags extends WithQuietFlag {} // tslint:disable-line no-empty-interface
 
 export class Init extends Command {
-  static description = 'Create a configuration files for your project.';
+  static description = 'Create the configuration files for your project.';
 
   static examples = [
     makeExample([
