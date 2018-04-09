@@ -27,11 +27,14 @@ USAGE
 <!-- usagestop -->
 
 After install run `ssmenv init` to generate configuration files for the
-project.  The configuration files are placed in the `.ssmenv` directory as
-`public.json` and `private.json`. `public.json` will only contain data that is
-not sensitive, it should be added to source control. `private.json` will
-contain sensitive data (such as AWS access key credentials) and should be
-ignored by source control.
+project. The `init` command asks for AWS Access and Secret Keys, the intention
+is these are keys for an IAM user's account, these will identify which account
+makes changes to variables in the SSM Parameter Store. The configuration files
+are placed in the `.ssmenv` directory as `public.json` and `private.json`.
+`public.json` will only contain data that is not sensitive (such as project
+root path), it should be added to source control. `private.json` will contain
+sensitive data (such as AWS access key credentials) and should be ignored by
+source control.
 
 # Commands
 
