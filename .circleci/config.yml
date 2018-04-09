@@ -50,7 +50,7 @@ workflows:
       - release:
           context: org-global
           filters:
-            branches: {only: master}
+            branches: {only: none}
           requires:
             - node-latest
             - node-8
