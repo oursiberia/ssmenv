@@ -7,7 +7,6 @@ import { Value, valuePositional } from '../../arguments/value';
 import { make as makeExample } from '../../example';
 import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
 import { getEnvironment } from '../../projectConfig';
-import { parseTag, Tag, validateTag } from '../../tag';
 
 interface Flags extends WithDescriptionFlag {} // tslint:disable-line no-empty-interface
 
