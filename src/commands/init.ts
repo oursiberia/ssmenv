@@ -6,6 +6,7 @@ import { prompt, Question } from 'inquirer';
 import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { make as makeExample } from '../example';
+import { quietFlag, WithQuietFlag } from '../flags/quiet';
 import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
@@ -29,7 +30,7 @@ interface Answers {
 interface Args extends Partial<Answers> {}
 
 /** Defines the information received as flags. */
-interface Flags {} // tslint:disable-line no-empty-interface
+interface Flags extends WithQuietFlag {} // tslint:disable-line no-empty-interface
 
 export class Init extends Command {
   static description = 'Create a configuration files for your project.';
@@ -55,7 +56,9 @@ export class Init extends Command {
     ]),
   ];
 
-  static flags = {};
+  static flags = {
+    quiet: quietFlag,
+  };
 
   static args: Parser.IArg[] = [
     {
@@ -139,11 +142,13 @@ export class Init extends Command {
     ).then(paths => {
       const keyword = chalk.keyword('green');
       const [awsPath, projectPath] = paths.map(v => keyword(v));
-      const stdout = [
-        `Configuration written to ${projectPath} and ${awsPath}.`,
-        `* Recommend adding ${projectPath} to source control.`,
-        `* Recommend ignoring ${awsPath} in source control.`,
-      ];
+      const stdout = flags.quiet
+        ? []
+        : [
+            `Configuration written to ${projectPath} and ${awsPath}.`,
+            `* Recommend adding ${projectPath} to source control.`,
+            `* Recommend ignoring ${awsPath} in source control.`,
+          ];
       stdout.forEach(line => this.log(line));
     });
     return result;
