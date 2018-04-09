@@ -135,22 +135,20 @@ export class Init extends Command {
     };
 
     const contents = JSON.stringify(projectConfig, undefined, 2);
-    const result = writeConfig(
+    const paths = await writeConfig(
       awsConfig,
       projectConfig,
       DEFAULT_CONFIG_PATH
-    ).then(paths => {
-      const keyword = chalk.keyword('green');
-      const [awsPath, projectPath] = paths.map(v => keyword(v));
-      const stdout = flags.quiet
-        ? []
-        : [
-            `Configuration written to ${projectPath} and ${awsPath}.`,
-            `* Recommend adding ${projectPath} to source control.`,
-            `* Recommend ignoring ${awsPath} in source control.`,
-          ];
-      stdout.forEach(line => this.log(line));
-    });
-    return result;
+    );
+    const keyword = chalk.keyword('green');
+    const [awsPath, projectPath] = paths.map(v => keyword(v));
+    const stdout = flags.quiet
+      ? []
+      : [
+          `Configuration written to ${projectPath} and ${awsPath}.`,
+          `* Recommend adding ${projectPath} to source control.`,
+          `* Recommend ignoring ${awsPath} in source control.`,
+        ];
+    stdout.forEach(line => this.log(line));
   }
 }
