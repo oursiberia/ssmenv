@@ -7,6 +7,7 @@ import {
   PROJECT_FILE_NAME,
 } from './constants';
 import { Environment, Options } from './environment';
+import { AwsSsmProxy } from './environment/AwsSsmProxy';
 import { Fn, Log } from './log';
 
 /**
@@ -22,6 +23,17 @@ export interface AwsConfig {
  */
 export interface ProjectConfig {
   rootPath: string;
+}
+
+/**
+ * Get direct access to `SSM` using the configuration written at `pathToConfig`.
+ * @param pathToConfig from which the project config will be read.
+ * @return an initialized `AWS.SSM` instance.
+ */
+export async function getDirectEnvironment(pathToConfig?: string) {
+  const awsConfig = await readAwsConfig(pathToConfig);
+  const ssm = getSSM(awsConfig);
+  return new AwsSsmProxy(ssm);
 }
 
 /**

@@ -14,8 +14,5 @@ function colorizeLine(line: string) {
  * @returns a single string for use in `Command.examples` array.
  */
 export function make(lines: string[]): string {
-  return lines
-    .map(colorizeLine)
-    .join('\n')
-    .concat('\n');
+  return lines.map(colorizeLine).join('\n');
 }
