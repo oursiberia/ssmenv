@@ -143,7 +143,6 @@ export class Init extends Command {
       secretAccessKey,
     };
 
-    const contents = JSON.stringify(projectConfig, undefined, 2);
     const paths = await writeConfig(
       awsConfig,
       projectConfig,
