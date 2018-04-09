@@ -6,6 +6,7 @@ import { prompt, Question } from 'inquirer';
 import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { make as makeExample } from '../example';
+import { quietFlag, WithQuietFlag } from '../flags/quiet';
 import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
@@ -29,10 +30,10 @@ interface Answers {
 interface Args extends Partial<Answers> {}
 
 /** Defines the information received as flags. */
-interface Flags {} // tslint:disable-line no-empty-interface
+interface Flags extends WithQuietFlag {} // tslint:disable-line no-empty-interface
 
 export class Init extends Command {
-  static description = 'Create a configuration files for your project.';
+  static description = 'Create the configuration files for your project.';
 
   static examples = [
     makeExample([
@@ -55,7 +56,9 @@ export class Init extends Command {
     ]),
   ];
 
-  static flags = {};
+  static flags = {
+    quiet: quietFlag,
+  };
 
   static args: Parser.IArg[] = [
     {
@@ -92,9 +95,14 @@ export class Init extends Command {
     }
   }
 
-  async run() {
-    const { args, flags } = this.parse<Flags, Args>(Init);
-    const questions: Question[] = [
+  /**
+   * Get the `Question` instances to prompt for based on the `Args` provided.
+   * @param args which may provide answers to `Question`s already.
+   * @returns the set of `Question`s to with their `when` condition set based on
+   *    `args`.
+   */
+  private static questions(args: Args): Question[] {
+    return [
       {
         message: 'AWS Access Key ID',
         name: AWS_ACCESS,
@@ -118,7 +126,11 @@ export class Init extends Command {
           Init.isValidRootPath(args.rootPath) !== true,
       },
     ];
-    const answers = await prompt<Answers>(questions);
+  }
+
+  async run() {
+    const { args, flags } = this.parse<Flags, Args>(Init);
+    const answers = await prompt<Answers>(Init.questions(args));
     const accessKeyId = args.awsAccess || answers.awsAccess;
     const secretAccessKey = args.awsSecret || answers.awsSecret;
     const rootPath = args.rootPath || answers.rootPath;
@@ -131,21 +143,20 @@ export class Init extends Command {
       secretAccessKey,
     };
 
-    const contents = JSON.stringify(projectConfig, undefined, 2);
-    const result = writeConfig(
+    const paths = await writeConfig(
       awsConfig,
       projectConfig,
       DEFAULT_CONFIG_PATH
-    ).then(paths => {
-      const keyword = chalk.keyword('green');
-      const [awsPath, projectPath] = paths.map(v => keyword(v));
-      const stdout = [
-        `Configuration written to ${projectPath} and ${awsPath}.`,
-        `* Recommend adding ${projectPath} to source control.`,
-        `* Recommend ignoring ${awsPath} in source control.`,
-      ];
-      stdout.forEach(line => this.log(line));
-    });
-    return result;
+    );
+    const keyword = chalk.keyword('green');
+    const [awsPath, projectPath] = paths.map(v => keyword(v));
+    const stdout = flags.quiet
+      ? []
+      : [
+          `Configuration written to ${projectPath} and ${awsPath}.`,
+          `* Recommend adding ${projectPath} to source control.`,
+          `* Recommend ignoring ${awsPath} in source control.`,
+        ];
+    stdout.forEach(line => this.log(line));
   }
 }
