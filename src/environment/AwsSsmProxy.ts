@@ -15,6 +15,9 @@ export class AwsSsmProxy {
   addTagsToResource: (
     request: SSM.AddTagsToResourceRequest
   ) => Promise<SSM.AddTagsToResourceResult>;
+  deleteParameters: (
+    request: SSM.DeleteParametersRequest
+  ) => Promise<SSM.DeleteParametersResult>;
   getParametersByPath: (
     request: SSM.GetParametersByPathRequest
   ) => Promise<SSM.GetParametersByPathResult>;
@@ -24,6 +27,7 @@ export class AwsSsmProxy {
 
   constructor(ssm: SSM) {
     this.addTagsToResource = this.promisify(ssm.addTagsToResource.bind(ssm));
+    this.deleteParameters = this.promisify(ssm.deleteParameters.bind(ssm));
     this.getParametersByPath = this.promisify(
       ssm.getParametersByPath.bind(ssm)
     );

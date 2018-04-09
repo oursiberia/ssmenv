@@ -139,6 +139,30 @@ export class Environment {
   }
 
   /**
+   * Delete a configuration parameter from the parameter store.
+   * @param key to delete.
+   * @returns `true` if the parameter for `key` was successfully deleted,
+   *    `false` if `key` was valid but not deleted.
+   * @throws if `key` maps to an invalid parameter.
+   */
+  async del(key: Key): Promise<boolean> {
+    const fqn = this.fqn(key);
+    const result = await this.ssm.deleteParameters({
+      Names: [fqn],
+    });
+    const invalidParameters = result.InvalidParameters || [];
+    const deletedParameters = result.DeletedParameters || [];
+    if (invalidParameters && invalidParameters.includes(fqn)) {
+      throw new Error(`Unable to delete ${key}.`);
+    } else if (deletedParameters && deletedParameters.includes(fqn)) {
+      this.cache.del(fqn);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Retrieve a configuration parameter with `key` from the parameter store. The
    * `convert` function transforms the resulting string value into any other type.
    * @param {string} key to search for.
