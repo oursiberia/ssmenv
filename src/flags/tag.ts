@@ -1,5 +1,5 @@
-import { Command, flags } from '@oclif/command';
-import { parseTag, Tag, validateTag } from '../tag';
+import { flags } from '@oclif/command';
+import { validateTag } from '../tag';
 
 export interface WithTagFlag {
   tag: string[];
