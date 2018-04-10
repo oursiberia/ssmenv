@@ -23,6 +23,9 @@ interface Answers {
   rootPath: string;
 }
 
+type AnswerKey = keyof Answers;
+type ShouldQuestion = Record<AnswerKey, boolean>;
+
 /**
  * Defines the information received as positional arguments. It must be at least
  * a subset of `Answers`.
@@ -96,52 +99,84 @@ export class Init extends Command {
   }
 
   /**
+   * Create default values for Questions based on current configuration, given
+   * `args` and given `flags`.
+   * @param args parsed for to the current execution.
+   * @param flags parsed for the current execution.
+   * @return values to uses as defaults if a new value is not provided.
+   */
+  private static async defaultAnswers(
+    args: Args,
+    flags: Flags
+  ): Promise<Partial<Answers>> {
+    const currentConfig = await readConfig(DEFAULT_CONFIG_PATH);
+    return {
+      awsAccess: args.awsAccess || currentConfig.accessKeyId,
+      awsSecret: args.awsSecret || currentConfig.secretAccessKey,
+      rootPath: args.rootPath || currentConfig.rootPath || '/',
+    };
+  }
+
+  /**
+   * Create mapping indicating if a configuration value must be prompted.
+   * @param args parsed for to the current execution.
+   * @param flags parsed for the current execution.
+   * @return a mapping of keys from `Answers` to boolean values, `true`
+   *    indicating the question should be prompted.
+   */
+  private static isMissingAnswer(args: Args, flags: Flags): ShouldQuestion {
+    return {
+      awsAccess: args.awsAccess === undefined,
+      awsSecret: args.awsSecret === undefined,
+      rootPath:
+        args.rootPath === undefined ||
+        Init.isValidRootPath(args.rootPath) !== true,
+    };
+  }
+
+  /**
    * Get the `Question` instances to prompt for based on the `Args` provided.
    * @param args which may provide answers to `Question`s already.
+   * @param flags which may provide answers to `Question`s already.
    * @returns the set of `Question`s to with their `when` condition set based on
    *    `args`.
    */
-  private static questions(
+  private static async questions(
     args: Args,
-    defaults?: Partial<Answers>
-  ): Question[] {
+    flags: Flags
+  ): Promise<Question[]> {
+    const isMissingValue = Init.isMissingAnswer(args, flags);
+    const defaults = await Init.defaultAnswers(args, flags);
     return [
       {
-        default: defaults && defaults.awsAccess,
+        default: defaults.awsAccess,
         message: 'AWS Access Key ID',
         name: AWS_ACCESS,
         type: 'input',
-        when: args.awsAccess === undefined,
+        when: isMissingValue.awsAccess,
       },
       {
-        default: defaults && defaults.awsSecret,
+        default: defaults.awsSecret,
         message: 'AWS Secret Access Key',
         name: AWS_SECRET,
         type: 'input',
-        when: args.awsSecret === undefined,
+        when: isMissingValue.awsSecret,
       },
       {
-        default: defaults && defaults.rootPath,
+        default: defaults.rootPath,
         message: 'Root Path',
         name: ROOT_PATH,
         type: 'input',
         validate: Init.isValidRootPath,
-        when:
-          args.rootPath === undefined ||
-          Init.isValidRootPath(args.rootPath) !== true,
+        when: isMissingValue.rootPath,
       },
     ];
   }
 
   async run() {
     const { args, flags } = this.parse<Flags, Args>(Init);
-    const currentConfig = await readConfig(DEFAULT_CONFIG_PATH);
-    const defaults: Partial<Answers> = {
-      awsAccess: currentConfig.accessKeyId,
-      awsSecret: currentConfig.secretAccessKey,
-      rootPath: currentConfig.rootPath || '/',
-    };
-    const answers = await prompt<Answers>(Init.questions(args, defaults));
+    const questions = await Init.questions(args, flags);
+    const answers = await prompt<Answers>(questions);
     const accessKeyId = args.awsAccess || answers.awsAccess;
     const rootPath = args.rootPath || answers.rootPath;
     const secretAccessKey = args.awsSecret || answers.awsSecret;
