@@ -101,22 +101,27 @@ export class Init extends Command {
    * @returns the set of `Question`s to with their `when` condition set based on
    *    `args`.
    */
-  private static questions(args: Args): Question[] {
+  private static questions(
+    args: Args,
+    defaults?: Partial<Answers>
+  ): Question[] {
     return [
       {
+        default: defaults && defaults.awsAccess,
         message: 'AWS Access Key ID',
         name: AWS_ACCESS,
         type: 'input',
         when: args.awsAccess === undefined,
       },
       {
+        default: defaults && defaults.awsSecret,
         message: 'AWS Secret Access Key',
         name: AWS_SECRET,
         type: 'input',
         when: args.awsSecret === undefined,
       },
       {
-        default: '/',
+        default: defaults && defaults.rootPath,
         message: 'Root Path',
         name: ROOT_PATH,
         type: 'input',
@@ -130,7 +135,13 @@ export class Init extends Command {
 
   async run() {
     const { args, flags } = this.parse<Flags, Args>(Init);
-    const answers = await prompt<Answers>(Init.questions(args));
+    const currentConfig = await readConfig(DEFAULT_CONFIG_PATH);
+    const defaults: Partial<Answers> = {
+      awsAccess: currentConfig.accessKeyId,
+      awsSecret: currentConfig.secretAccessKey,
+      rootPath: currentConfig.rootPath || '/',
+    };
+    const answers = await prompt<Answers>(Init.questions(args, defaults));
     const accessKeyId = args.awsAccess || answers.awsAccess;
     const rootPath = args.rootPath || answers.rootPath;
     const secretAccessKey = args.awsSecret || answers.awsSecret;

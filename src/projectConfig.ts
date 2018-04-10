@@ -122,6 +122,23 @@ async function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
 }
 
 /**
+ * Read `Config` from `pathToConfig` allowing for partial results.
+ * @param pathToConfig from which all configuration can be read.
+ * @returns a `Config` where all properties are optional (may be `undefined`).
+ */
+export async function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+  const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
+  const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
+  const awsConfig = await read<AwsConfig>(awsFileName);
+  const projectConfig = await read<ProjectConfig>(projectFileName);
+  const config: Partial<Config> = {
+    ...awsConfig,
+    ...projectConfig,
+  };
+  return config;
+}
+
+/**
  * Read `Project` from the given filesystem `pathToConfig`.
  * @param pathToConfig from which the `Project` can be read.
  * @returns the `Project` located at `pathToConfig`.
