@@ -7,7 +7,7 @@ import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { make as makeExample } from '../example';
 import { quietFlag, WithQuietFlag } from '../flags/quiet';
-import { AwsConfig, ProjectConfig, writeConfig } from '../projectConfig';
+import { Config, readConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
 const AWS_ACCESS = 'awsAccess';
@@ -132,22 +132,16 @@ export class Init extends Command {
     const { args, flags } = this.parse<Flags, Args>(Init);
     const answers = await prompt<Answers>(Init.questions(args));
     const accessKeyId = args.awsAccess || answers.awsAccess;
-    const secretAccessKey = args.awsSecret || answers.awsSecret;
     const rootPath = args.rootPath || answers.rootPath;
+    const secretAccessKey = args.awsSecret || answers.awsSecret;
     // If checks didn't exit then we have valid values
-    const projectConfig: ProjectConfig = {
-      rootPath,
-    };
-    const awsConfig: AwsConfig = {
+    const config: Config = {
       accessKeyId,
+      rootPath,
       secretAccessKey,
     };
 
-    const paths = await writeConfig(
-      awsConfig,
-      projectConfig,
-      DEFAULT_CONFIG_PATH
-    );
+    const paths = await writeConfig(config, DEFAULT_CONFIG_PATH);
     const keyword = chalk.keyword('green');
     const [awsPath, projectPath] = paths.map(v => keyword(v));
     const stdout = flags.quiet

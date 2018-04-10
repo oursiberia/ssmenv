@@ -21,11 +21,16 @@ export interface AwsConfig {
 }
 
 /**
- * Configuration indicating parameters to be read.
+ * Configuration specific to the project.
  */
 export interface ProjectConfig {
   rootPath: string;
 }
+
+/**
+ * Configuration combining AWS and project properties.
+ */
+export interface Config extends AwsConfig, ProjectConfig {}
 
 /**
  * Ensure the directory indicated by `pathToConfig` exists.
@@ -139,8 +144,19 @@ async function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
  * @returns the paths to which the files were written.
  * @throws if there is an unexpected error creating or opening `pathToConfig`.
  */
+export async function writeConfig(
+  config: Config,
   pathToConfig: string = DEFAULT_CONFIG_PATH
 ): Promise<string[]> {
+  const { accessKeyId, rootPath, secretAccessKey, stages } = config;
+  const projectConfig: ProjectConfig = {
+    rootPath,
+    stages,
+  };
+  const awsConfig: AwsConfig = {
+    accessKeyId,
+    secretAccessKey,
+  };
   const hasConfigDirectory = await ensureConfigDirectory(pathToConfig);
   if (!hasConfigDirectory) {
     throw new Error(`Unable to write into or create ${pathToConfig}.`);
