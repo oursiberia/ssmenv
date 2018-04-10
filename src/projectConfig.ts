@@ -8,6 +8,7 @@ import {
 } from './constants';
 import { Environment, Options } from './environment';
 import { AwsSsmProxy } from './environment/AwsSsmProxy';
+import { ConfigValidationError } from './errors';
 import { Fn, Log } from './log';
 
 /**
@@ -85,13 +86,11 @@ function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
         reject(err);
       } else {
         const conf = JSON.parse(data);
-        const props = Object.getOwnPropertyNames(conf);
-        const hasAccessKeyId = props.indexOf('accessKeyId') !== -1;
-        const hasSecretKeyId = props.indexOf('secretAccessKey') !== -1;
-        if (hasAccessKeyId && hasSecretKeyId) {
+        try {
+          validateAwsConfig(conf, awsFileName);
           resolve(conf);
-        } else {
-          reject(new Error('Required properties are missing'));
+        } catch (error) {
+          reject(error);
         }
       }
     });
@@ -113,12 +112,11 @@ function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
         reject(err);
       } else {
         const conf = JSON.parse(data);
-        const props = Object.getOwnPropertyNames(conf);
-        const hasRootPath = props.indexOf('rootPath') !== -1;
-        if (hasRootPath) {
+        try {
+          validateProjectConfig(conf, projectFileName);
           resolve(conf);
-        } else {
-          reject(new Error('Required properties are missing'));
+        } catch (error) {
+          reject(error);
         }
       }
     });
@@ -161,6 +159,45 @@ function ensureConfigDirectory(pathToConfig: string) {
       }
     });
   });
+}
+
+/**
+ * Validate the given `config` can possesses properties in `required`.
+ * @param required properties to test exist in config.
+ * @param config to test can be a `ProjectConfig`.
+ * @param fileName to use in error messages.
+ * @throws `ConfigValidationError` if `config` is missing any required
+ *    properties.
+ */
+function validateConfig(required: string[], config: object, fileName: string) {
+  const props = Object.getOwnPropertyNames(config);
+  required.forEach(requiredProperty => {
+    if (props.indexOf(requiredProperty) === -1) {
+      throw new ConfigValidationError(requiredProperty, fileName);
+    }
+  });
+}
+
+/**
+ * Validate the given `config` can be used as a `AwsConfig` instance.
+ * @param config to test can be a `AwsConfig`.
+ * @param fileName to use in error messages.
+ * @throws `ConfigValidationError` if `config` is missing any required
+ *    properties.
+ */
+function validateAwsConfig(config: object, fileName: string) {
+  validateConfig(['accessKeyId', 'secretAccessKey'], config, fileName);
+}
+
+/**
+ * Validate the given `config` can be used as a `ProjectConfig` instance.
+ * @param config to test can be a `ProjectConfig`.
+ * @param fileName to use in error messages.
+ * @throws `ConfigValidationError` if `config` is missing any required
+ *    properties.
+ */
+function validateProjectConfig(config: object, fileName: string) {
+  validateConfig(['rootPath'], config, fileName);
 }
 
 /**
