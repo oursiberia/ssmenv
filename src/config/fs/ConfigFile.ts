@@ -1,11 +1,10 @@
-import { readFile, stat, writeFile } from 'fs';
-import { sep as pathSeparator } from 'path';
+import { readFile, writeFile } from 'fs';
 import { promisify } from 'util';
 
 import { ConfigValidationError } from '../../errors';
-import { AwsConfig } from '../AwsConfig';
+import { AwsConfig, AwsRequiredProperties } from '../AwsConfig';
 import { AnyConfig, ConfigProperty } from '../ConfigTypes';
-import { ProjectConfig } from '../ProjectConfig';
+import { ProjectConfig, ProjectRequiredProperties } from '../ProjectConfig';
 
 const reader = promisify(readFile);
 const writer = promisify(writeFile);
