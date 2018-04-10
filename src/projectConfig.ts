@@ -132,17 +132,17 @@ function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
  * @param projectConfig to write.
  * @param pathToConfig filesystem path where the configuration will be written.
  * @returns the paths to which the files were written.
+ * @throws if there is an unexpected error creating or opening `pathToConfig`.
  */
-export function writeConfig(
-  awsConfig: AwsConfig,
-  projectConfig: ProjectConfig,
   pathToConfig: string = DEFAULT_CONFIG_PATH
-) {
-  return ensureConfigDirectory(pathToConfig).then(() => {
-    const awsResult = writeAwsConfig(awsConfig, pathToConfig);
-    const projectResult = writeProjectConfig(projectConfig, pathToConfig);
-    return Promise.all([awsResult, projectResult]);
-  });
+): Promise<string[]> {
+  const hasConfigDirectory = await ensureConfigDirectory(pathToConfig);
+  if (!hasConfigDirectory) {
+    throw new Error(`Unable to write into or create ${pathToConfig}.`);
+  }
+  const awsResult = writeAwsConfig(awsConfig, pathToConfig);
+  const projectResult = writeProjectConfig(projectConfig, pathToConfig);
+  return Promise.all([awsResult, projectResult]);
 }
 
 /**
