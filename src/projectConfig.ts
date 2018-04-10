@@ -28,6 +28,24 @@ export interface ProjectConfig {
 }
 
 /**
+ * Ensure the directory indicated by `pathToConfig` exists.
+ * @param pathToConfig to ensure.
+ * @returns `true` if successful.
+ * @throws `NodeJS.ErrnoException` otherwise.
+ */
+function ensureConfigDirectory(pathToConfig: string) {
+  return new Promise<boolean>((resolve, reject) => {
+    mkdir(pathToConfig, 0o755, err => {
+      if (err && err.code !== 'EEXIST') {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+/**
  * Get direct access to `SSM` using the configuration written at `pathToConfig`.
  * @param pathToConfig from which the project config will be read.
  * @return an initialized `AWS.SSM` instance.
@@ -73,6 +91,18 @@ function getSSM(config: AwsConfig): SSM {
 }
 
 /**
+ * Read given `fileName` from disk as a JSON object.
+ * @param T type parameter for the `Partial` returned by reading `fileName`.
+ * @param fileName of the JSON file to be read.
+ * @returns the contents of `fileName` as a `Partial<T>`.
+ */
+async function read<T>(fileName: string) {
+  const reader = promisify(readFile);
+  const data = await reader(fileName, { encoding: 'utf8' });
+  return JSON.parse(data) as Partial<T>;
+}
+
+/**
  * Read `AwsConfig` from the given filesystem `pathToConfig`.
  * @param pathToConfig from which the `AwsConfig` can be read.
  * @returns the `AwsConfig` located at `pathToConfig`.
@@ -84,18 +114,6 @@ async function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
   const config = await read<ProjectConfig>(awsFileName);
   validateAwsConfig(config, awsFileName);
   return config as AwsConfig;
-}
-
-/**
- * Read given `fileName` from disk as a JSON object.
- * @param T type parameter for the `Partial` returned by reading `fileName`.
- * @param fileName of the JSON file to be read.
- * @returns the contents of `fileName` as a `Partial<T>`.
- */
-async function read<T>(fileName: string) {
-  const reader = promisify(readFile);
-  const data = await reader(fileName, { encoding: 'utf8' });
-  return JSON.parse(data) as Partial<T>;
 }
 
 /**
@@ -130,24 +148,6 @@ async function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
   const awsResult = writeAwsConfig(awsConfig, pathToConfig);
   const projectResult = writeProjectConfig(projectConfig, pathToConfig);
   return Promise.all([awsResult, projectResult]);
-}
-
-/**
- * Ensure the directory indicated by `pathToConfig` exists.
- * @param pathToConfig to ensure.
- * @returns `true` if successful.
- * @throws `NodeJS.ErrnoException` otherwise.
- */
-function ensureConfigDirectory(pathToConfig: string) {
-  return new Promise<boolean>((resolve, reject) => {
-    mkdir(pathToConfig, 0o755, err => {
-      if (err && err.code !== 'EEXIST') {
-        reject(err);
-      } else {
-        resolve(true);
-      }
-    });
-  });
 }
 
 /**
