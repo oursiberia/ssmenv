@@ -3,8 +3,8 @@ import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
 import { Stage, stagePositional } from '../../arguments/stage';
+import { getEnvironment } from '../../config/fs';
 import { make as makeExample } from '../../example';
-import { getEnvironment } from '../../projectConfig';
 
 interface Flags {} // tslint:disable-line no-empty-interface
 

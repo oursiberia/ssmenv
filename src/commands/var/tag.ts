@@ -3,9 +3,9 @@ import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
 import { Stage, stagePositional } from '../../arguments/stage';
+import { getEnvironment } from '../../config/fs';
 import { make as makeExample } from '../../example';
 import { tagFlag, WithTagFlag } from '../../flags/tag';
-import { getEnvironment } from '../../projectConfig';
 import { parseTag } from '../../tag';
 
 interface Flags extends WithTagFlag {} // tslint:disable-line no-empty-interface

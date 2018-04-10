@@ -2,36 +2,22 @@ import { SSM } from 'aws-sdk';
 import { mkdir, readFile, stat, writeFile } from 'fs';
 import { sep as pathSeparator } from 'path';
 import { promisify } from 'util';
+
 import {
   AWS_FILE_NAME,
   DEFAULT_CONFIG_PATH,
   PROJECT_FILE_NAME,
-} from './constants';
-import { Environment, Options } from './environment';
-import { AwsSsmProxy } from './environment/AwsSsmProxy';
-import { ConfigValidationError } from './errors';
-import { Fn, Log } from './log';
+} from '../../constants';
+import { Environment, Options } from '../../environment';
+import { AwsSsmProxy } from '../../environment/AwsSsmProxy';
+import { ConfigValidationError } from '../../errors';
+import { Fn, Log } from '../../log';
 
-/**
- * Configuration necessary for connecting to AWS.
- */
-export interface AwsConfig {
-  accessKeyId: string;
-  secretAccessKey: string;
-}
+import { AwsConfig, AwsRequiredProperties } from '../AwsConfig';
+import { FullConfig } from '../ConfigTypes';
+import { ProjectConfig, ProjectRequiredProperties } from '../ProjectConfig';
 
-/**
- * Configuration specific to the project.
- */
-export interface ProjectConfig {
-  rootPath: string;
-  stages: string[];
-}
-
-/**
- * Configuration combining AWS and project properties.
- */
-export interface Config extends AwsConfig, ProjectConfig {}
+import { ConfigFile } from './ConfigFile';
 
 /**
  * Ensure the directory indicated by `pathToConfig` exists.
@@ -97,29 +83,16 @@ function getSSM(config: AwsConfig): SSM {
 }
 
 /**
- * Read given `fileName` from disk as a JSON object.
- * @param T type parameter for the `Partial` returned by reading `fileName`.
- * @param fileName of the JSON file to be read.
- * @returns the contents of `fileName` as a `Partial<T>`.
- */
-async function read<T>(fileName: string) {
-  const reader = promisify(readFile);
-  const data = await reader(fileName, { encoding: 'utf8' });
-  return JSON.parse(data) as Partial<T>;
-}
-
-/**
  * Read `AwsConfig` from the given filesystem `pathToConfig`.
  * @param pathToConfig from which the `AwsConfig` can be read.
  * @returns the `AwsConfig` located at `pathToConfig`.
  * @throws `Error` if required properties are missing from the read config or if
  *    there is a problem with file I/O.
  */
-async function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
   const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
-  const config = await read<ProjectConfig>(awsFileName);
-  validateAwsConfig(config, awsFileName);
-  return config as AwsConfig;
+  const config = new ConfigFile<AwsConfig>(awsFileName, AwsRequiredProperties);
+  return config.read();
 }
 
 /**
@@ -130,11 +103,17 @@ async function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
 export async function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
   const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
   const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
-  const awsConfig = await read<AwsConfig>(awsFileName);
-  const projectConfig = await read<ProjectConfig>(projectFileName);
-  const config: Partial<Config> = {
-    ...awsConfig,
-    ...projectConfig,
+  const awsConfig = new ConfigFile<AwsConfig>(
+    awsFileName,
+    AwsRequiredProperties
+  );
+  const projectConfig = new ConfigFile<ProjectConfig>(
+    projectFileName,
+    ProjectRequiredProperties
+  );
+  const config: Partial<FullConfig> = {
+    ...(await awsConfig.partial()),
+    ...(await projectConfig.partial()),
   };
   return config;
 }
@@ -148,9 +127,11 @@ export async function readConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
  */
 async function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
   const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
-  const config = await read<ProjectConfig>(projectFileName);
-  validateProjectConfig(config, projectFileName);
-  return config as ProjectConfig;
+  const config = new ConfigFile<ProjectConfig>(
+    projectFileName,
+    ProjectRequiredProperties
+  );
+  return config.read();
 }
 
 /**
@@ -163,7 +144,7 @@ async function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
  * @throws if there is an unexpected error creating or opening `pathToConfig`.
  */
 export async function writeConfig(
-  config: Config,
+  config: FullConfig,
   pathToConfig: string = DEFAULT_CONFIG_PATH
 ): Promise<string[]> {
   const { accessKeyId, rootPath, secretAccessKey, stages } = config;
@@ -185,62 +166,15 @@ export async function writeConfig(
 }
 
 /**
- * Validate the given `config` can possesses properties in `required`.
- * @param required properties to test exist in config.
- * @param config to test can be a `ProjectConfig`.
- * @param fileName to use in error messages.
- * @throws `ConfigValidationError` if `config` is missing any required
- *    properties.
- */
-function validateConfig(required: string[], config: object, fileName: string) {
-  const props = Object.getOwnPropertyNames(config);
-  required.forEach(requiredProperty => {
-    if (props.indexOf(requiredProperty) === -1) {
-      throw new ConfigValidationError(requiredProperty, fileName);
-    }
-  });
-}
-
-/**
- * Validate the given `config` can be used as a `AwsConfig` instance.
- * @param config to test can be a `AwsConfig`.
- * @param fileName to use in error messages.
- * @throws `ConfigValidationError` if `config` is missing any required
- *    properties.
- */
-function validateAwsConfig(config: object, fileName: string) {
-  validateConfig(['accessKeyId', 'secretAccessKey'], config, fileName);
-}
-
-/**
- * Validate the given `config` can be used as a `ProjectConfig` instance.
- * @param config to test can be a `ProjectConfig`.
- * @param fileName to use in error messages.
- * @throws `ConfigValidationError` if `config` is missing any required
- *    properties.
- */
-function validateProjectConfig(config: object, fileName: string) {
-  validateConfig(['rootPath', 'stages'], config, fileName);
-}
-
-/**
  * Writes the given `awsConfig` as a JSON file within `pathToConfig`.
  * @param awsConfig to write.
  * @param pathToConfig filesystem path where the configuration will be written.
  * @returns the paths to which the file was written.
  */
 function writeAwsConfig(awsConfig: AwsConfig, pathToConfig: string) {
-  return new Promise<string>((resolve, reject) => {
-    const awsContents = JSON.stringify(awsConfig, undefined, 2);
-    const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
-    writeFile(awsFileName, awsContents, 'utf8', err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(awsFileName);
-      }
-    });
-  });
+  const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
+  const config = new ConfigFile<AwsConfig>(awsFileName, AwsRequiredProperties);
+  return config.write(awsConfig);
 }
 
 /**
@@ -250,15 +184,10 @@ function writeAwsConfig(awsConfig: AwsConfig, pathToConfig: string) {
  * @returns the paths to which the file was written.
  */
 function writeProjectConfig(config: ProjectConfig, pathToConfig: string) {
-  return new Promise<string>((resolve, reject) => {
-    const projectContents = JSON.stringify(config, undefined, 2);
-    const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
-    writeFile(projectFileName, projectContents, 'utf8', err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(projectFileName);
-      }
-    });
-  });
+  const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
+  const projectConfig = new ConfigFile<ProjectConfig>(
+    projectFileName,
+    ProjectRequiredProperties
+  );
+  return projectConfig.write(config);
 }

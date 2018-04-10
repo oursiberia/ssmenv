@@ -2,8 +2,8 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Stage, stagePositional } from '../../arguments/stage';
+import { getEnvironment } from '../../config/fs';
 import { make as makeExample } from '../../example';
-import { getEnvironment } from '../../projectConfig';
 
 interface Flags {
   withDecryption: boolean;

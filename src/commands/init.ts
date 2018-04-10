@@ -3,12 +3,12 @@ import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
 
+import { readConfig, writeConfig } from '../config/fs';
 import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { make as makeExample } from '../example';
 import { quietFlag, WithQuietFlag } from '../flags/quiet';
 import { stageFlag, WithStageFlag } from '../flags/stage';
-import { Config, readConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
 const AWS_ACCESS = 'awsAccess';
@@ -245,7 +245,7 @@ export class Init extends Command {
     // Despite what the inferred signature of `flags` indicates `stage` can be undefined
     const stages = flags.stage || answers.stages.split(',');
     // If checks didn't exit then we have valid values
-    const config: Config = {
+    const config = {
       accessKeyId,
       rootPath,
       secretAccessKey,
