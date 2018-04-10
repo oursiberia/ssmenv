@@ -1,4 +1,4 @@
-import { Command } from '@oclif/command';
+import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
@@ -7,12 +7,14 @@ import { DEFAULT_CONFIG_PATH } from '../constants';
 import { Environment } from '../environment';
 import { make as makeExample } from '../example';
 import { quietFlag, WithQuietFlag } from '../flags/quiet';
+import { stageFlag, WithStageFlag } from '../flags/stage';
 import { Config, readConfig, writeConfig } from '../projectConfig';
 
 // Defined to name Args interface properties as constants.
 const AWS_ACCESS = 'awsAccess';
 const AWS_SECRET = 'awsSecret';
 const ROOT_PATH = 'rootPath';
+const STAGES = 'stages';
 
 /**
  * Defines the interface of the answers received from `inquirer`
@@ -21,6 +23,7 @@ interface Answers {
   awsAccess: string;
   awsSecret: string;
   rootPath: string;
+  stages: string;
 }
 
 type AnswerKey = keyof Answers;
@@ -33,7 +36,7 @@ type ShouldQuestion = Record<AnswerKey, boolean>;
 interface Args extends Partial<Answers> {}
 
 /** Defines the information received as flags. */
-interface Flags extends WithQuietFlag {} // tslint:disable-line no-empty-interface
+interface Flags extends WithQuietFlag, WithStageFlag {} // tslint:disable-line no-empty-interface
 
 export class Init extends Command {
   static description = 'Create the configuration files for your project.';
@@ -41,7 +44,7 @@ export class Init extends Command {
   static examples = [
     makeExample([
       `# Create configuration with given parameters.`,
-      `$ ssmenv init / FOO bar`,
+      `$ ssmenv init --stage=production / FOO bar`,
       `Configuration written to .ssmenv/public.json and .ssmenv/private.json.`,
       `* Recommend adding .ssmenv/public.json to source control.`,
       `* Recommend ignoring .ssmenv/private.json in source control.`,
@@ -53,6 +56,7 @@ export class Init extends Command {
       `? AWS Access Key ID`,
       `? AWS Secret Access Key`,
       `? Root Path (/)`,
+      `? Comma Separated Stages (development,production,staging,test)`,
       `Configuration written to .ssmenv/public.json and .ssmenv/private.json.`,
       `* Recommend adding .ssmenv/public.json to source control.`,
       `* Recommend ignoring .ssmenv/private.json in source control.`,
@@ -61,6 +65,7 @@ export class Init extends Command {
 
   static flags = {
     quiet: quietFlag,
+    stage: stageFlag,
   };
 
   static args: Parser.IArg[] = [
@@ -77,6 +82,47 @@ export class Init extends Command {
       name: AWS_SECRET,
     },
   ];
+
+  /**
+   * Uses `Environment#validatePathPart` to check for errors but catches any
+   * thrown to translate them into a `string` message.
+   * @param input to be validated.
+   * @return `true` if `input` is valid, a `string` message if `input` is not
+   *    valid.
+   */
+  static isValidPathPart(input: string) {
+    try {
+      Environment.validatePathPart('Stage', input);
+      return true;
+    } catch (err) {
+      if (err instanceof Error) {
+        return err.message;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  /**
+   * Uses `isValidPathPart` to check for errors in the comma separated list of
+   * path parts in `input.
+   * @param input of comma separated path parts to validate.
+   * @return `true` if `input` is valid, a `string` message if `input` is not
+   *    valid.
+   */
+  static isValidPathParts(input: string) {
+    const parts = input.split(',');
+    const isValidResults = parts
+      .map(Init.isValidPathPart)
+      .filter(result => typeof result === 'string');
+    if (isValidResults.length === 0) {
+      // no parts were invalid so `input` is valid.
+      return true;
+    } else {
+      // return a single string
+      return isValidResults.join(' ');
+    }
+  }
 
   /**
    * Uses `Environment#validateRootPath` to check for errors but catches any
@@ -114,6 +160,10 @@ export class Init extends Command {
       awsAccess: args.awsAccess || currentConfig.accessKeyId,
       awsSecret: args.awsSecret || currentConfig.secretAccessKey,
       rootPath: args.rootPath || currentConfig.rootPath || '/',
+      stages:
+        (flags.stage && flags.stage.join(',')) ||
+        (currentConfig.stages && currentConfig.stages.join(',')) ||
+        'development,production,staging,test',
     };
   }
 
@@ -131,6 +181,10 @@ export class Init extends Command {
       rootPath:
         args.rootPath === undefined ||
         Init.isValidRootPath(args.rootPath) !== true,
+      stages:
+        flags.stage === undefined ||
+        flags.stage.length === 0 ||
+        Init.isValidPathParts(flags.stage.join(',')) !== true,
     };
   }
 
@@ -170,6 +224,14 @@ export class Init extends Command {
         validate: Init.isValidRootPath,
         when: isMissingValue.rootPath,
       },
+      {
+        default: defaults.stages,
+        message: 'Comma Separated Stages',
+        name: STAGES,
+        type: 'input',
+        validate: Init.isValidPathParts,
+        when: isMissingValue.stages,
+      },
     ];
   }
 
@@ -180,11 +242,14 @@ export class Init extends Command {
     const accessKeyId = args.awsAccess || answers.awsAccess;
     const rootPath = args.rootPath || answers.rootPath;
     const secretAccessKey = args.awsSecret || answers.awsSecret;
+    // Despite what the inferred signature of `flags` indicates `stage` can be undefined
+    const stages = flags.stage || answers.stages.split(',');
     // If checks didn't exit then we have valid values
     const config: Config = {
       accessKeyId,
       rootPath,
       secretAccessKey,
+      stages,
     };
 
     const paths = await writeConfig(config, DEFAULT_CONFIG_PATH);

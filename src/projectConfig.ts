@@ -25,6 +25,7 @@ export interface AwsConfig {
  */
 export interface ProjectConfig {
   rootPath: string;
+  stages: string[];
 }
 
 /**
@@ -219,7 +220,7 @@ function validateAwsConfig(config: object, fileName: string) {
  *    properties.
  */
 function validateProjectConfig(config: object, fileName: string) {
-  validateConfig(['rootPath'], config, fileName);
+  validateConfig(['rootPath', 'stages'], config, fileName);
 }
 
 /**
