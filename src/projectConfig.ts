@@ -1,6 +1,7 @@
 import { SSM } from 'aws-sdk';
 import { mkdir, readFile, stat, writeFile } from 'fs';
 import { sep as pathSeparator } from 'path';
+import { promisify } from 'util';
 import {
   AWS_FILE_NAME,
   DEFAULT_CONFIG_PATH,
@@ -78,23 +79,23 @@ function getSSM(config: AwsConfig): SSM {
  * @throws `Error` if required properties are missing from the read config or if
  *    there is a problem with file I/O.
  */
-function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
-  return new Promise<AwsConfig>((resolve, reject) => {
-    const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
-    readFile(awsFileName, { encoding: 'utf8' }, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        const conf = JSON.parse(data);
-        try {
-          validateAwsConfig(conf, awsFileName);
-          resolve(conf);
-        } catch (error) {
-          reject(error);
-        }
-      }
-    });
-  });
+async function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+  const awsFileName = `${pathToConfig}${pathSeparator}${AWS_FILE_NAME}`;
+  const config = await read<ProjectConfig>(awsFileName);
+  validateAwsConfig(config, awsFileName);
+  return config as AwsConfig;
+}
+
+/**
+ * Read given `fileName` from disk as a JSON object.
+ * @param T type parameter for the `Partial` returned by reading `fileName`.
+ * @param fileName of the JSON file to be read.
+ * @returns the contents of `fileName` as a `Partial<T>`.
+ */
+async function read<T>(fileName: string) {
+  const reader = promisify(readFile);
+  const data = await reader(fileName, { encoding: 'utf8' });
+  return JSON.parse(data) as Partial<T>;
 }
 
 /**
@@ -104,23 +105,11 @@ function readAwsConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
  * @throws `Error` if required properties are missing from the read config or if
  *    there is a problem with file I/O.
  */
-function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
-  return new Promise<ProjectConfig>((resolve, reject) => {
-    const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
-    readFile(projectFileName, { encoding: 'utf8' }, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        const conf = JSON.parse(data);
-        try {
-          validateProjectConfig(conf, projectFileName);
-          resolve(conf);
-        } catch (error) {
-          reject(error);
-        }
-      }
-    });
-  });
+async function readProjectConfig(pathToConfig: string = DEFAULT_CONFIG_PATH) {
+  const projectFileName = `${pathToConfig}${pathSeparator}${PROJECT_FILE_NAME}`;
+  const config = await read<ProjectConfig>(projectFileName);
+  validateProjectConfig(config, projectFileName);
+  return config as ProjectConfig;
 }
 
 /**
