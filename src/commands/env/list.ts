@@ -1,9 +1,9 @@
 import { Command } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
+import { getDirectEnvironment } from '../../config/fs';
 import { AwsSsmProxy } from '../../environment/AwsSsmProxy';
 import { make as makeExample } from '../../example';
-import { getDirectEnvironment } from '../../projectConfig';
 
 export class EnvList extends Command {
   static description = [

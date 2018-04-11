@@ -12,7 +12,7 @@ export interface WithStageFlag {
 
 export const stageFlag = flags.string({
   char: 's',
-  description: 'Tags to set on the variable as TagName:TagValue.',
+  description: 'Stage to operate within. May be provided multiple times.',
   helpValue: 'stage',
   multiple: true,
   name: 'stage',

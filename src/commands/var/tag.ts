@@ -2,17 +2,24 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
-import { Stage, stagePositional } from '../../arguments/stage';
+import { StageActorCommand } from '../../command/StageActorCommand';
+import { getEnvironment } from '../../config/fs';
+import { EnvironmentVariable, Option } from '../../environment';
 import { make as makeExample } from '../../example';
+import { stageFlag, WithStageFlag } from '../../flags/stage';
 import { tagFlag, WithTagFlag } from '../../flags/tag';
-import { getEnvironment } from '../../projectConfig';
 import { parseTag } from '../../tag';
 
-interface Flags extends WithTagFlag {} // tslint:disable-line no-empty-interface
+export interface Flags extends WithStageFlag, WithTagFlag {}
 
-interface Args extends Key, Stage {}
+// tslint:disable-next-line no-empty-interface
+export interface Args extends Key {}
 
-export class VarSet extends Command {
+export class VarTag extends StageActorCommand<
+  Args,
+  Flags,
+  EnvironmentVariable
+> {
   static description = 'Add tags to a variable. Variable must exist.';
 
   static examples = [
@@ -27,17 +34,21 @@ export class VarSet extends Command {
   ];
 
   static flags = {
+    stage: stageFlag,
     tag: tagFlag,
   };
 
-  static args: Parser.IArg[] = [stagePositional, keyPositional];
+  static args: Parser.IArg[] = [keyPositional];
 
-  async run() {
-    const { args, flags } = this.parse<Flags, Args>(VarSet);
-    const { key, stage } = args;
+  async runOnStage(stage: string, args: Args, flags: Flags) {
+    const { key } = args;
     // Despite what the inferred signature of `flags` indicates `tag` can be undefined
     const tags = (flags.tag || []).map(parseTag);
-    const environment = await getEnvironment(stage);
-    const result = await environment.tag(key, tags);
+    try {
+      const environment = await getEnvironment(stage);
+      return environment.tag(key, tags);
+    } catch (err) {
+      this.error(`Failed to set tags for '${key}' in stage, ${stage}.`);
+    }
   }
 }

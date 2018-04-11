@@ -2,44 +2,51 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
-import { Stage, stagePositional } from '../../arguments/stage';
 import { Value, valuePositional } from '../../arguments/value';
+import { StageActorCommand } from '../../command/StageActorCommand';
+import { getEnvironment } from '../../config/fs';
+import { EnvironmentVariable, Option } from '../../environment';
 import { make as makeExample } from '../../example';
 import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
-import { getEnvironment } from '../../projectConfig';
+import { stageFlag, WithStageFlag } from '../../flags/stage';
 
-interface Flags extends WithDescriptionFlag {} // tslint:disable-line no-empty-interface
+export interface Flags extends WithDescriptionFlag, WithStageFlag {}
 
-interface Args extends Key, Stage, Value {}
+export interface Args extends Key, Value {}
 
-export class VarSet extends Command {
+export class VarSet extends StageActorCommand<
+  Args,
+  Flags,
+  EnvironmentVariable
+> {
   static description = 'Set the value of a variable. Creates it if it does not exist, creates a new version if it does.';
 
   static examples = [
     makeExample([
       `# Set value of FOO variable in test stage.`,
-      `$ ssmenv var:set test FOO bar`,
+      `$ ssmenv var:set --stage=test FOO bar`,
     ]),
     makeExample([
       `# Set value of FOO variable for staging with a description.`,
-      `$ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"`,
+      `$ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"`,
     ]),
   ];
 
   static flags = {
     description: descriptionFlag,
+    stage: stageFlag,
   };
 
-  static args: Parser.IArg[] = [
-    stagePositional,
-    keyPositional,
-    valuePositional,
-  ];
+  static args: Parser.IArg[] = [keyPositional, valuePositional];
 
-  async run() {
-    const { args, flags } = this.parse<Flags, Args>(VarSet);
-    const { key, stage, value } = args;
-    const environment = await getEnvironment(stage);
-    const result = await environment.put(key, value, flags.description);
+  async runOnStage(stage: string, args: Args, flags: Flags) {
+    const { key, value } = args;
+    const description = flags.description;
+    try {
+      const environment = await getEnvironment(stage);
+      return environment.put(key, value, description);
+    } catch (err) {
+      this.error(`Failed to set value for '${key}' in stage, ${stage}.`);
+    }
   }
 }

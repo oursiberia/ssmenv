@@ -2,35 +2,41 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
-import { Stage, stagePositional } from '../../arguments/stage';
+import { StageActorCommand } from '../../command/StageActorCommand';
+import { getEnvironment, pushStage } from '../../config/fs';
+import { Option } from '../../environment';
 import { make as makeExample } from '../../example';
-import { getEnvironment } from '../../projectConfig';
+import { stageFlag, WithStageFlag } from '../../flags/stage';
 
-interface Flags {} // tslint:disable-line no-empty-interface
+// tslint:disable-next-line no-empty-interface
+export interface Flags extends WithStageFlag {}
 
-interface Args extends Key, Stage {}
+// tslint:disable-next-line no-empty-interface
+export interface Args extends Key {}
 
-export default class VarDel extends Command {
+export default class VarDel extends StageActorCommand<Args, Flags, boolean> {
   static description = 'Delete a variable.';
 
   static examples = [
     makeExample([
       `# Delete variable FOO in test stage.`,
-      `$ ssmenv var:del test FOO`,
+      `$ ssmenv var:del --stage=test FOO`,
     ]),
   ];
 
-  static flags = {};
+  static flags = {
+    stage: stageFlag,
+  };
 
-  static args: Parser.IArg[] = [stagePositional, keyPositional];
+  static args: Parser.IArg[] = [keyPositional];
 
-  async run() {
-    const { args, flags } = this.parse<Flags, Args>(VarDel);
-    const { key, stage } = args;
-    const environment = await getEnvironment(stage);
-    const result = await environment.del(key);
-    if (result === false) {
-      this.exit(1);
+  async runOnStage(stage: string, args: Args, flags: Flags) {
+    const { key } = args;
+    try {
+      const environment = await getEnvironment(stage);
+      return await environment.del(key);
+    } catch (err) {
+      this.error(`Failed to set value for '${key}' in stage, ${stage}.`);
     }
   }
 }

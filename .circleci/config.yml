@@ -12,8 +12,7 @@ jobs:
           keys:
             - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "yarn.lock"}}
             - v1-yarn-{{checksum ".circleci/config.yml"}}
-      - run: .circleci/greenkeeper
-      - run: yarn add -D nyc@11 @oclif/nyc-config@1 mocha-junit-reporter@1
+      - run: yarn
       - run: ./bin/run --version
       - run: ./bin/run --help
       - run: yarn test
@@ -29,11 +28,12 @@ jobs:
       - add_ssh_keys
       - checkout
       - restore_cache: *restore_cache
-      - run: yarn global add @oclif/semantic-release@2 semantic-release@15
-      - run: yarn --frozen-lockfile
-      - run: |
-          export PATH=/usr/local/share/.config/yarn/global/node_modules/.bin:$PATH
-          semantic-release -e @oclif/semantic-release
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/cli/.npmrc
+      - run:
+          name: Publish package
+          command: yarn publish
       - save_cache:
           key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
@@ -50,7 +50,10 @@ workflows:
       - release:
           context: org-global
           filters:
-            branches: {only: none}
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
           requires:
             - node-latest
             - node-8

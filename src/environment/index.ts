@@ -1,7 +1,7 @@
 import { AWSError, SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
-import { AwsSsmProxy } from './environment/AwsSsmProxy';
-import { Tag } from './tag';
+import { Tag } from '../tag';
+import { AwsSsmProxy } from './AwsSsmProxy';
 
 /** Regex for a valid path part, meant to be reused as `source`. */
 const PART = /[\w_-]+/;
