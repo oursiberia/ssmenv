@@ -2,18 +2,24 @@ import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
-import { Stage, stagePositional } from '../../arguments/stage';
-import { getEnvironment, pushStage } from '../../config/fs';
+import { StageActorCommand } from '../../command/StageActorCommand';
+import { getEnvironment } from '../../config/fs';
+import { EnvironmentVariable, Option } from '../../environment';
 import { make as makeExample } from '../../example';
 import { stageFlag, WithStageFlag } from '../../flags/stage';
 import { tagFlag, WithTagFlag } from '../../flags/tag';
 import { parseTag } from '../../tag';
 
-interface Flags extends WithStageFlag, WithTagFlag {}
+export interface Flags extends WithStageFlag, WithTagFlag {}
 
-interface Args extends Key, Stage {}
+// tslint:disable-next-line no-empty-interface
+export interface Args extends Key {}
 
-export class VarSet extends Command {
+export class VarTag extends StageActorCommand<
+  Args,
+  Flags,
+  EnvironmentVariable
+> {
   static description = 'Add tags to a variable. Variable must exist.';
 
   static examples = [
@@ -32,30 +38,10 @@ export class VarSet extends Command {
     tag: tagFlag,
   };
 
-  static args: Parser.IArg[] = [stagePositional, keyPositional];
+  static args: Parser.IArg[] = [keyPositional];
 
-  async run() {
-    const { args, flags } = this.parse<Flags, Args>(VarSet);
-    const { key, stage } = args;
-    const stages = flags.stage;
-    // Despite what the inferred signature of `flags` indicates `stage` can be undefined
-    if (stages === undefined || stages.length === 0) {
-      this.error('At least one stage is required for `var:del`.', { exit: 1 });
-    }
-    const results = await Promise.all(
-      stages.map(stage => this.tag(stage, key, flags))
-    );
-    if (results.some(result => result === undefined)) {
-      this.exit(1);
-    }
-  }
-
-  private async tag(stage: string, key: string, flags: Flags) {
-    try {
-      await pushStage(stage);
-    } catch (pushError) {
-      this.error(`Book keeping - failed to save ${stage} to project config.`);
-    }
+  async runOnStage(stage: string, args: Args, flags: Flags) {
+    const { key } = args;
     // Despite what the inferred signature of `flags` indicates `tag` can be undefined
     const tags = (flags.tag || []).map(parseTag);
     try {
