@@ -45,8 +45,16 @@ workflows:
   version: 2
   "ssmenv":
     jobs:
-      - node-latest
-      - node-8
+      - node-latest:
+          context: org-global
+          filters:
+            tags:
+              only: /^v.*/
+      - node-8:
+          context: org-global
+          filters:
+            tags:
+              only: /^v.*/
       - release:
           context: org-global
           filters:
