@@ -75,6 +75,29 @@ function getSSM(config: AwsConfig): SSM {
 }
 
 /**
+ * Push give `stage` into the project config.
+ * @param stage to add.
+ * @param pathToConfig from which all configuration can be read.
+ * @returns `true` after stage exists in the config.
+ * @throws if `stage` can not be pushed into configuration.
+ */
+export async function pushStage(stage: string, pathToConfig?: string) {
+  const projectFile = getProjectConfig(pathToConfig);
+  const config = await projectFile.read();
+  const stages = config.stages;
+  if (stages.includes(stage)) {
+    return true;
+  } else {
+    const newConfig = {
+      ...config,
+      stages: [...stages, stage],
+    };
+    const result = await projectFile.write(newConfig);
+    return true;
+  }
+}
+
+/**
  * Read `Config` from `pathToConfig` allowing for partial results.
  * @param pathToConfig from which all configuration can be read.
  * @returns a `Config` where all properties are optional (may be `undefined`).
