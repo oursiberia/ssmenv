@@ -18,7 +18,7 @@ $ npm install -g ssmenv
 $ ssmenv COMMAND
 running command...
 $ ssmenv (-v|--version|version)
-ssmenv/0.3.0 darwin-x64 node-v9.11.1
+ssmenv/0.4.0 darwin-x64 node-v9.11.1
 $ ssmenv --help [COMMAND]
 USAGE
   $ ssmenv COMMAND
@@ -47,10 +47,10 @@ for input.
 * [ssmenv env:list](#ssmenv-envlist)
 * [ssmenv help [COMMAND]](#ssmenv-help-command)
 * [ssmenv init [ROOTPATH] [AWSACCESS] [AWSSECRET]](#ssmenv-init-rootpath-awsaccess-awssecret)
-* [ssmenv var STAGE KEY VALUE](#ssmenv-var-stage-key-value)
-* [ssmenv var:del STAGE KEY](#ssmenv-vardel-stage-key)
-* [ssmenv var:set STAGE KEY VALUE](#ssmenv-varset-stage-key-value)
-* [ssmenv var:tag STAGE KEY](#ssmenv-vartag-stage-key)
+* [ssmenv var KEY VALUE](#ssmenv-var-key-value)
+* [ssmenv var:del KEY](#ssmenv-vardel-key)
+* [ssmenv var:set KEY VALUE](#ssmenv-varset-key-value)
+* [ssmenv var:tag KEY](#ssmenv-vartag-key)
 
 ## ssmenv env STAGE
 
@@ -76,7 +76,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/env.ts)_
 
 ### ssmenv env:dotenv STAGE
 
@@ -102,7 +102,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/env/dotenv.ts)_
 
 ### ssmenv env:list
 
@@ -125,7 +125,7 @@ EXAMPLE
   /otherproject/dev
 ```
 
-_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/list.ts)_
+_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/env/list.ts)_
 
 ## ssmenv env:dotenv STAGE
 
@@ -151,7 +151,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/env/dotenv.ts)_
 
 ## ssmenv env:list
 
@@ -174,7 +174,7 @@ EXAMPLE
   /otherproject/dev
 ```
 
-_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/env/list.ts)_
+_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/env/list.ts)_
 
 ## ssmenv help [COMMAND]
 
@@ -207,11 +207,12 @@ ARGUMENTS
   AWSSECRET  AWS Secret Key to use when interacting with AWS API.
 
 OPTIONS
-  -q, --quiet  Suppress informative but unnecessary output.
+  -q, --quiet        Suppress informative but unnecessary output.
+  -s, --stage=stage  Stage to operate within. May be provided multiple times.
 
 EXAMPLES
   # Create configuration with given parameters.
-  $ ssmenv init / FOO bar
+  $ ssmenv init --stage=production / FOO bar
   Configuration written to .ssmenv/public.json and .ssmenv/private.json.
   * Recommend adding .ssmenv/public.json to source control.
   * Recommend ignoring .ssmenv/private.json in source control.
@@ -222,97 +223,100 @@ EXAMPLES
   ? AWS Access Key ID
   ? AWS Secret Access Key
   ? Root Path (/)
+  ? Comma Separated Stages (development,production,staging,test)
   Configuration written to .ssmenv/public.json and .ssmenv/private.json.
   * Recommend adding .ssmenv/public.json to source control.
   * Recommend ignoring .ssmenv/private.json in source control.
 ```
 
-_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/init.ts)_
 
-## ssmenv var STAGE KEY VALUE
+## ssmenv var KEY VALUE
 
 Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
 
 ```
 USAGE
-  $ ssmenv var STAGE KEY VALUE
+  $ ssmenv var KEY VALUE
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
   KEY    Key to use when setting the variable; AKA variable name.
   VALUE  Value of the variable to set.
 
 OPTIONS
   -d, --description=description  Description of the variable.
+  -s, --stage=stage              Stage to operate within. May be provided multiple times.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
-  $ ssmenv var:set test FOO bar
+  $ ssmenv var:set --stage=test FOO bar
 
   # Set value of FOO variable for staging with a description.
-  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  $ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"
 ```
 
-_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var.ts)_
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var.ts)_
 
-### ssmenv var:del STAGE KEY
+### ssmenv var:del KEY
 
 Delete a variable.
 
 ```
 USAGE
-  $ ssmenv var:del STAGE KEY
+  $ ssmenv var:del KEY
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
-  KEY    Key to use when setting the variable; AKA variable name.
+  KEY  Key to use when setting the variable; AKA variable name.
+
+OPTIONS
+  -s, --stage=stage  Stage to operate within. May be provided multiple times.
 
 EXAMPLE
   # Delete variable FOO in test stage.
-  $ ssmenv var:del test FOO
+  $ ssmenv var:del --stage=test FOO
 ```
 
-_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/del.ts)_
+_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/del.ts)_
 
-### ssmenv var:set STAGE KEY VALUE
+### ssmenv var:set KEY VALUE
 
 Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
 
 ```
 USAGE
-  $ ssmenv var:set STAGE KEY VALUE
+  $ ssmenv var:set KEY VALUE
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
   KEY    Key to use when setting the variable; AKA variable name.
   VALUE  Value of the variable to set.
 
 OPTIONS
   -d, --description=description  Description of the variable.
+  -s, --stage=stage              Stage to operate within. May be provided multiple times.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
-  $ ssmenv var:set test FOO bar
+  $ ssmenv var:set --stage=test FOO bar
 
   # Set value of FOO variable for staging with a description.
-  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  $ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/set.ts)_
 
-### ssmenv var:tag STAGE KEY
+### ssmenv var:tag KEY
 
 Add tags to a variable. Variable must exist.
 
 ```
 USAGE
-  $ ssmenv var:tag STAGE KEY
+  $ ssmenv var:tag KEY
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
-  KEY    Key to use when setting the variable; AKA variable name.
+  KEY  Key to use when setting the variable; AKA variable name.
 
 OPTIONS
+  -s, --stage=stage           Stage to operate within. May be provided multiple times.
   -t, --tag=TagName:TagValue  Tags to set on the variable as TagName:TagValue.
 
 EXAMPLES
@@ -323,66 +327,68 @@ EXAMPLES
   $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
 ```
 
-_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/tag.ts)_
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/tag.ts)_
 
-## ssmenv var:del STAGE KEY
+## ssmenv var:del KEY
 
 Delete a variable.
 
 ```
 USAGE
-  $ ssmenv var:del STAGE KEY
+  $ ssmenv var:del KEY
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
-  KEY    Key to use when setting the variable; AKA variable name.
+  KEY  Key to use when setting the variable; AKA variable name.
+
+OPTIONS
+  -s, --stage=stage  Stage to operate within. May be provided multiple times.
 
 EXAMPLE
   # Delete variable FOO in test stage.
-  $ ssmenv var:del test FOO
+  $ ssmenv var:del --stage=test FOO
 ```
 
-_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/del.ts)_
+_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/del.ts)_
 
-## ssmenv var:set STAGE KEY VALUE
+## ssmenv var:set KEY VALUE
 
 Set the value of a variable. Creates it if it does not exist, creates a new version if it does.
 
 ```
 USAGE
-  $ ssmenv var:set STAGE KEY VALUE
+  $ ssmenv var:set KEY VALUE
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
   KEY    Key to use when setting the variable; AKA variable name.
   VALUE  Value of the variable to set.
 
 OPTIONS
   -d, --description=description  Description of the variable.
+  -s, --stage=stage              Stage to operate within. May be provided multiple times.
 
 EXAMPLES
   # Set value of FOO variable in test stage.
-  $ ssmenv var:set test FOO bar
+  $ ssmenv var:set --stage=test FOO bar
 
   # Set value of FOO variable for staging with a description.
-  $ ssmenv var:set staging FOO "bar baz" --description="A description of FOO"
+  $ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/set.ts)_
 
-## ssmenv var:tag STAGE KEY
+## ssmenv var:tag KEY
 
 Add tags to a variable. Variable must exist.
 
 ```
 USAGE
-  $ ssmenv var:tag STAGE KEY
+  $ ssmenv var:tag KEY
 
 ARGUMENTS
-  STAGE  Stage to use for retrieving data. Appended to root path.
-  KEY    Key to use when setting the variable; AKA variable name.
+  KEY  Key to use when setting the variable; AKA variable name.
 
 OPTIONS
+  -s, --stage=stage           Stage to operate within. May be provided multiple times.
   -t, --tag=TagName:TagValue  Tags to set on the variable as TagName:TagValue.
 
 EXAMPLES
@@ -393,5 +399,5 @@ EXAMPLES
   $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
 ```
 
-_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.3.0/src/commands/var/tag.ts)_
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.4.0/src/commands/var/tag.ts)_
 <!-- commandsstop -->
