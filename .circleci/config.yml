@@ -15,9 +15,9 @@ jobs:
       - run: yarn
       - run: ./bin/run --version
       - run: ./bin/run --help
-      - run: yarn test
+      - run: yarn jest --coverage
       - store_test_results: &store_test_results
-          path: ~/cli/reports
+          path: ~/cli/coverage
   node-8:
     <<: *test
     docker:
