@@ -41,7 +41,9 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/cli/.npmrc
       - run:
           name: Publish package
-          command: yarn publish
+          command: |
+            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
+            yarn publish --new-version="${VERSION}"
       - save_cache:
           key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
