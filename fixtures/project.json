@@ -1,0 +1,4 @@
+{
+  "rootPath": "/bin/",
+  "stages": ["development", "production", "staging"]
+}
