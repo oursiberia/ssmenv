@@ -1,0 +1,4 @@
+{
+  "rootPath": "/public/",
+  "stages": ["development", "production", "staging"]
+}

@@ -15,9 +15,17 @@ jobs:
       - run: yarn
       - run: ./bin/run --version
       - run: ./bin/run --help
-      - run: yarn test
+      - run: mkdir -p reports/junit
+      - run:
+          name: "Linter"
+          command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
+      - run:
+          name: "Test Suite"
+          command: yarn jest --ci --testResultsProcessor="jest-junit"
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
       - store_test_results: &store_test_results
-          path: ~/cli/reports
+          path: reports/junit
   node-8:
     <<: *test
     docker:
@@ -45,8 +53,16 @@ workflows:
   version: 2
   "ssmenv":
     jobs:
-      - node-latest
-      - node-8
+      - node-latest:
+          context: org-global
+          filters:
+            tags:
+              only: /^v.*/
+      - node-8:
+          context: org-global
+          filters:
+            tags:
+              only: /^v.*/
       - release:
           context: org-global
           filters:

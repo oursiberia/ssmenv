@@ -15,9 +15,9 @@ export function validateTag(param: string, context?: any) {
   const [key, value, ...rest] = param.split(':');
   if (rest.length !== 0) {
     throw new Error(`Too many parts divided by ':' in '${param}'.`);
-  } else if (value === undefined) {
+  } else if (value === undefined || value === '') {
     throw new Error(`value could not be parsed from '${param}'.`);
-  } else if (key === undefined) {
+  } else if (key === undefined || key === '') {
     throw new Error(`key could not be parsed from '${param}'.`);
   }
   return param;
@@ -29,7 +29,7 @@ export function validateTag(param: string, context?: any) {
  * @returns an object that conforms to the tag interface.
  */
 export function parseTag(param: string): Tag {
-  const [key, value, ...rest] = validateTag(param).split(':');
+  const [key, value] = validateTag(param).split(':');
   return {
     Key: key,
     Value: value,

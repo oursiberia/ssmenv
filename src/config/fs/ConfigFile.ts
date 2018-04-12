@@ -51,7 +51,7 @@ function validateConfig(required: string[], config: object, fileName: string) {
 }
 
 export class ConfigFile<T extends AnyConfig> {
-  private fileName: string;
+  fileName: string;
   private requiredProperties: Array<ConfigProperty<T>>;
   constructor(fileName: string, requiredProperties: Array<ConfigProperty<T>>) {
     this.fileName = fileName;
@@ -79,8 +79,11 @@ export class ConfigFile<T extends AnyConfig> {
    * Writes the given `config` object as a JSON to the filesystem.
    * @param config to write.
    * @returns the paths to which the file was written.
+   * @throws `Error` if required properties are missing from the read config or
+   *    if there is a problem with file I/O.
    */
   async write(config: T) {
+    this.validate(config);
     return write(config, this.fileName);
   }
   /**
