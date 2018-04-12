@@ -15,6 +15,10 @@ jobs:
       - run: yarn
       - run: ./bin/run --version
       - run: ./bin/run --help
+      - run: mkdir -p reports/junit
+      - run:
+          name: "Linter"
+          command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
       - run:
           name: "Test Suite"
           command: yarn jest --ci --testResultsProcessor="jest-junit"
