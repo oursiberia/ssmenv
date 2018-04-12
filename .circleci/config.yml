@@ -15,9 +15,13 @@ jobs:
       - run: yarn
       - run: ./bin/run --version
       - run: ./bin/run --help
-      - run: yarn jest --coverage
+      - run:
+          name: "Test Suite"
+          command: yarn jest --ci --testResultsProcessor="jest-junit"
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
       - store_test_results: &store_test_results
-          path: ~/cli/coverage
+          path: reports/junit
   node-8:
     <<: *test
     docker:

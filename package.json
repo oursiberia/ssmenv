@@ -31,6 +31,7 @@
     "eslint-plugin-prettier": "^2.6.0",
     "globby": "^8.0.1",
     "jest": "^22.4.3",
+    "jest-junit": "^3.6.0",
     "pkg": "^4.3.1",
     "prettier": "^1.11.1",
     "ts-jest": "^22.4.2",
