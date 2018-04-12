@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 * `ConfigFile` validates before writing out the configuration.
 * `ConfigFile` exposes the `fileName` property.
 
+## Fixed
+
+* `var:tag` will no longer create tags with empty keys or values.
+
 # v0.4.0 (2018-04-11)
 
 ## Added
