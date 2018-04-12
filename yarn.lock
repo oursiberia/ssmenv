@@ -39,30 +39,29 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@oclif/command@^1.4.10", "@oclif/command@^1.4.7":
-  version "1.4.10"
-  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.4.10.tgz#15d229ba975018ca62cf4a94bec6d9796e18b619"
+"@oclif/command@^1.4.13", "@oclif/command@^1.4.7":
+  version "1.4.13"
+  resolved "https://registry.yarnpkg.com/@oclif/command/-/command-1.4.13.tgz#2ed3c42142307d20337ec04eabd1be410dfa2a5e"
   dependencies:
     "@oclif/errors" "^1.0.4"
-    "@oclif/parser" "^3.2.13"
+    "@oclif/parser" "^3.3.2"
     debug "^3.1.0"
     semver "^5.5.0"
 
-"@oclif/config@^1.3.62", "@oclif/config@^1.4.0", "@oclif/config@^1.4.10":
-  version "1.4.10"
-  resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.4.10.tgz#79d10455378bf97b0910685659c00a7cca6e2e77"
+"@oclif/config@^1.3.62", "@oclif/config@^1.6.1":
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/@oclif/config/-/config-1.6.3.tgz#8c28cec59a9ff9486aab580de2d6635d80ce44f4"
   dependencies:
     debug "^3.1.0"
 
 "@oclif/dev-cli@^1.4.4":
-  version "1.9.16"
-  resolved "https://registry.yarnpkg.com/@oclif/dev-cli/-/dev-cli-1.9.16.tgz#2cc2942d5e8b92041aed41a04c4436fa11aa9c9d"
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@oclif/dev-cli/-/dev-cli-1.13.0.tgz#b46bf7e8cf247a1aa2acdd46be38819a2fd4febd"
   dependencies:
-    "@oclif/command" "^1.4.10"
-    "@oclif/config" "^1.4.10"
+    "@oclif/command" "^1.4.13"
+    "@oclif/config" "^1.6.1"
     "@oclif/errors" "^1.0.4"
     "@oclif/plugin-help" "^1.2.3"
-    "@oclif/plugin-warn-if-update-available" "^1.3.0"
     cli-ux "^3.3.28"
     debug "^3.1.0"
     fs-extra "^5.0.0"
@@ -86,37 +85,24 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@oclif/linewrap/-/linewrap-1.0.0.tgz#aedcb64b479d4db7be24196384897b5000901d91"
 
-"@oclif/parser@^3.2.11", "@oclif/parser@^3.2.13":
-  version "3.2.13"
-  resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.2.13.tgz#4baf2b4ea23165e57adaae1f223861d8d9a33a24"
+"@oclif/parser@^3.2.11", "@oclif/parser@^3.3.2":
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/@oclif/parser/-/parser-3.3.2.tgz#81af56d4f97beae376abb59e461005489abd9e19"
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     chalk "^2.3.2"
 
 "@oclif/plugin-help@^1.2.2", "@oclif/plugin-help@^1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-1.2.3.tgz#f85e88744ec271d38949fda5c51185ad7f99e77d"
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@oclif/plugin-help/-/plugin-help-1.2.4.tgz#1b4349f7d570445ad5cfe4f925bfd832d4552aa2"
   dependencies:
-    "@oclif/command" "^1.4.7"
+    "@oclif/command" "^1.4.13"
     chalk "^2.3.2"
     indent-string "^3.2.0"
     lodash.template "^4.4.0"
     string-width "^2.1.1"
     widest-line "^2.0.0"
     wrap-ansi "^3.0.1"
-
-"@oclif/plugin-warn-if-update-available@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@oclif/plugin-warn-if-update-available/-/plugin-warn-if-update-available-1.3.0.tgz#f332eee1560cdeed1b4f4857cb54260fe1ca2582"
-  dependencies:
-    "@oclif/command" "^1.4.7"
-    "@oclif/config" "^1.4.0"
-    "@oclif/errors" "^1.0.4"
-    chalk "^2.3.2"
-    debug "^3.1.0"
-    fs-extra "^5.0.0"
-    http-call "^5.1.0"
-    semver "^5.5.0"
 
 "@oclif/screen@^1.0.2":
   version "1.0.2"
@@ -144,8 +130,8 @@
   resolved "https://registry.yarnpkg.com/@types/lru-cache/-/lru-cache-4.1.0.tgz#ef69ce9c3ebb46bd146f0d80f0c1ce38b0508eae"
 
 "@types/node@*", "@types/node@^9.6.2":
-  version "9.6.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.2.tgz#e49ac1adb458835e95ca6487bc20f916b37aff23"
+  version "9.6.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.4.tgz#0ef7b4cfc3499881c81e0ea1ce61a23f6f4f5b42"
 
 "@types/rx-core-binding@*":
   version "4.0.4"
@@ -473,8 +459,8 @@ atob@^2.0.0:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.0.tgz#ab2b150e51d7b122b9efc8d7340c06b6c41076bc"
 
 aws-sdk@^2.222.1:
-  version "2.222.1"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.222.1.tgz#d84c34003bb882d1fec17c41c74cb817bda84914"
+  version "2.224.1"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.224.1.tgz#82fe93e10b3e818f315c35ce8667cdc8db94a0b3"
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -929,8 +915,8 @@ cli-cursor@^2.1.0:
     restore-cursor "^2.0.0"
 
 cli-ux@^3.3.28:
-  version "3.3.28"
-  resolved "https://registry.yarnpkg.com/cli-ux/-/cli-ux-3.3.28.tgz#9d516d389a9bbca272e8a195f7cac6c61d0e69fa"
+  version "3.3.30"
+  resolved "https://registry.yarnpkg.com/cli-ux/-/cli-ux-3.3.30.tgz#525e65bda07a04e913673dfd614519373053d003"
   dependencies:
     "@oclif/linewrap" "^1.0.0"
     "@oclif/screen" "^1.0.2"
@@ -3517,8 +3503,8 @@ preserve@^0.2.0:
   resolved "https://registry.yarnpkg.com/preserve/-/preserve-0.2.0.tgz#815ed1f6ebc65926f865b310c0713bcb3315ce4b"
 
 prettier@^1.11.1:
-  version "1.11.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.11.1.tgz#61e43fc4cd44e68f2b0dfc2c38cd4bb0fccdcc75"
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.12.0.tgz#d26fc5894b9230de97629b39cae225b503724ce8"
 
 pretty-format@^22.4.3:
   version "22.4.3"
@@ -3826,15 +3812,9 @@ resolve@1.4.0:
   dependencies:
     path-parse "^1.0.5"
 
-resolve@^1.1.7:
+resolve@^1.1.7, resolve@^1.3.2:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.7.1.tgz#aadd656374fd298aee895bc026b8297418677fd3"
-  dependencies:
-    path-parse "^1.0.5"
-
-resolve@^1.3.2:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.7.0.tgz#2bdf5374811207285df0df652b78f118ab8f3c5e"
   dependencies:
     path-parse "^1.0.5"
 
@@ -3878,8 +3858,8 @@ rx-lite@*, rx-lite@^4.0.8:
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-4.0.8.tgz#0b1e11af8bc44836f04a6407e92da42467b79444"
 
 rxjs@^5.5.2:
-  version "5.5.8"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.8.tgz#b2b0809a57614ad6254c03d7446dea0d83ca3791"
+  version "5.5.10"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.10.tgz#fde02d7a614f6c8683d0d1957827f492e09db045"
   dependencies:
     symbol-observable "1.0.1"
 
