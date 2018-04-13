@@ -1,7 +1,9 @@
 {
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
-    "member-access": [true, "no-public"],
+    "member-access": {
+      "options": ["no-public"]
+    },
     "interface-name": false,
     "no-shadowed-variable": false,
     "no-unused-variable": true
