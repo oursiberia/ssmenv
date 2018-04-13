@@ -39,7 +39,7 @@ export class EnvDotenv extends Command {
     const { args, flags } = this.parse<Flags, Args>(EnvDotenv);
     const { stage } = args;
     const config = await getEnvironment(stage, {
-      WithDecryption: flags.withDecryption,
+      withDecryption: flags.withDecryption,
     });
     const isReady = await config.isReady;
     if (!isReady) {

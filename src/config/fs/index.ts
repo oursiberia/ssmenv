@@ -2,7 +2,7 @@ import { SSM } from 'aws-sdk';
 import { mkdir } from 'fs';
 
 import { DEFAULT_CONFIG_PATH } from '../../constants';
-import { Environment, Options } from '../../environment';
+import { Environment, EnvironmentOptions } from '../../environment';
 import { AwsSsmProxy } from '../../environment/AwsSsmProxy';
 
 import { AwsConfig } from '../AwsConfig';
@@ -50,7 +50,7 @@ export async function getDirectEnvironment(pathToConfig?: string) {
  */
 export async function getEnvironment(
   stage: string,
-  options?: Options,
+  options?: EnvironmentOptions,
   pathToConfig?: string
 ) {
   const awsConfig = await getAwsConfig(pathToConfig).read();

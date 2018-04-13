@@ -32,6 +32,16 @@ export type PutRequest = SSM.PutParameterRequest;
 export type PutResult = SSM.PutParameterResult;
 
 /**
+ * Options available when creating an `Environment` instance.
+ */
+export interface EnvironmentOptions {
+  /** Whether or not we should attempt to decrypt SecureString values. */
+  withDecryption?: boolean;
+  /** The key to use when encrypting values. */
+  withEncryption?: string;
+}
+
+/**
  * Structure of an environment variable.
  */
 export interface EnvironmentVariable {
@@ -108,8 +118,8 @@ export class Environment {
   private fqnPrefix: string;
   /** RegExp to find key value at the end of the path (extracting `rootPath`). */
   private keyMatcher: RegExp;
-  /** Options to include when requesting parameters. */
-  private options: Options;
+  /** EnvironmentOptions to include when requesting parameters. */
+  private options: EnvironmentOptions;
   /** The `AWS.SSM` instance used to retrieve data. */
   private ssm: AwsSsmProxy;
 
@@ -118,9 +128,9 @@ export class Environment {
    * retrieve parameter valeus.
    * @param {string} fqnPrefix path to search.
    * @param {AWS.SSM} ssm to use for retrieving parameters.
-   * @param {Options} options for requesting parameters.
+   * @param {EnvironmentOptions} options for requesting parameters.
    */
-  constructor(fqnPrefix: string, ssm: SSM, options: Options = {}) {
+  constructor(fqnPrefix: string, ssm: SSM, options: EnvironmentOptions = {}) {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;
@@ -280,9 +290,9 @@ export class Environment {
    */
   private async fetch(): Promise<Parameter[]> {
     const options: SSM.GetParametersByPathRequest = {
-      ...this.options,
       Path: `${this.fqnPrefix}`,
       Recursive: true,
+      WithDecryption: this.options.withDecryption,
     };
     const result = await this.ssm.getParametersByPath(options);
     return result.Parameters || [];
@@ -321,7 +331,7 @@ export class Environment {
     const hasName = param.Name !== undefined;
     const isString = param.Type === 'String';
     const isSecure = param.Type === 'SecureString';
-    const withDecryption = this.options.WithDecryption || false;
+    const withDecryption = this.options.withDecryption || false;
     return hasName && (isString || (withDecryption && isSecure));
   }
 
