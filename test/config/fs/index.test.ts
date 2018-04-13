@@ -23,33 +23,36 @@ jest.mock('aws-sdk', () => {
   };
 });
 
+const validConfigPath = { pathToConfig: 'fixtures' };
+const invalidConfigPath = { pathToConfig: 'nofixtures' };
+
 describe(getDirectEnvironment, () => {
   it('gets an instance with valid path', async () => {
-    const ssm = await getDirectEnvironment('fixtures');
+    const ssm = await getDirectEnvironment(validConfigPath);
     expect(ssm).toBeInstanceOf(AwsSsmProxy);
   });
   it('throws an error with invalid path', async () => {
     expect.assertions(1);
-    await expect(getDirectEnvironment('nofixtures')).rejects.toBeDefined();
+    await expect(getDirectEnvironment(invalidConfigPath)).rejects.toBeDefined();
   });
 });
 
 describe(getEnvironment, () => {
   it('gets an instance with a valid path', async () => {
-    const env = await getEnvironment('stage', undefined, 'fixtures');
+    const env = await getEnvironment('stage', validConfigPath);
     expect(env).toBeInstanceOf(Environment);
   });
   it('throws an error with invalid path', async () => {
     expect.assertions(1);
     await expect(
-      getEnvironment('stage', undefined, 'nofixtures')
+      getEnvironment('stage', invalidConfigPath)
     ).rejects.toBeDefined();
   });
 });
 
 describe(readConfig, () => {
   it('reads full config with valid path', async () => {
-    const config = await readConfig('fixtures');
+    const config = await readConfig(validConfigPath);
     expect.assertions(
       AwsRequiredProperties.length + ProjectRequiredProperties.length
     );
@@ -62,6 +65,6 @@ describe(readConfig, () => {
   });
   it('throws an error with invalid path', async () => {
     expect.assertions(1);
-    await expect(readConfig('nofixtures')).rejects.toBeDefined();
+    await expect(readConfig(invalidConfigPath)).rejects.toBeDefined();
   });
 });

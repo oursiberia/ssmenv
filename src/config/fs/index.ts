@@ -12,6 +12,18 @@ import { ProjectConfig } from '../ProjectConfig';
 import { getAwsConfig, getProjectConfig } from './helpers';
 
 /**
+ * Options for where to read and write configuration.
+ */
+export interface ConfigOptions {
+  /** File name within `pathToConfig` where AWS configuration is stored. */
+  awsConfigFileName?: string;
+  /** File system path from which the project config files will be read. */
+  pathToConfig?: string;
+  /** File name within `pathToConfig` where project configuration is stored. */
+  projectConfigFileName?: string;
+}
+
+/**
  * Ensure the directory indicated by `pathToConfig` exists.
  * @param pathToConfig to ensure.
  * @returns `true` if successful.
@@ -31,11 +43,13 @@ function ensureConfigDirectory(pathToConfig: string) {
 
 /**
  * Get direct access to `SSM` using the configuration written at `pathToConfig`.
- * @param pathToConfig from which the project config will be read.
+ * @param options indicating filesystem paths where the configuration will be
+ *    read.
  * @return an initialized `AWS.SSM` instance.
  */
-export async function getDirectEnvironment(pathToConfig?: string) {
-  const awsConfig = await getAwsConfig(pathToConfig).read();
+export async function getDirectEnvironment(options: ConfigOptions = {}) {
+  const { awsConfigFileName, pathToConfig } = options;
+  const awsConfig = await getAwsConfig(pathToConfig, awsConfigFileName).read();
   const ssm = getSSM(awsConfig);
   return new AwsSsmProxy(ssm);
 }
@@ -44,17 +58,19 @@ export async function getDirectEnvironment(pathToConfig?: string) {
  * Retrieve an `Environment` for the given `stage` using the given `options` and
  * configuration from `pathToConfig`.
  * @param stage of project to be combined with the project's root path.
- * @param options to use when initializing `Environment`.
- * @param pathToConfig from which the project config will be read.
+ * @param options to use when reading config initializing `Environment`.
  * @returns the initialized `Environment`.
  */
 export async function getEnvironment(
   stage: string,
-  options?: EnvironmentOptions,
-  pathToConfig?: string
+  options: ConfigOptions & EnvironmentOptions = {}
 ) {
-  const awsConfig = await getAwsConfig(pathToConfig).read();
-  const projectConfig = await getProjectConfig(pathToConfig).read();
+  const { awsConfigFileName, pathToConfig, projectConfigFileName } = options;
+  const awsConfig = await getAwsConfig(pathToConfig, awsConfigFileName).read();
+  const projectConfig = await getProjectConfig(
+    pathToConfig,
+    projectConfigFileName
+  ).read();
   const ssm = getSSM(awsConfig);
   const rootPath = `${projectConfig.rootPath}${stage}`;
   return new Environment(rootPath, ssm, options);
@@ -77,12 +93,14 @@ function getSSM(config: AwsConfig): SSM {
 /**
  * Push give `stage` into the project config.
  * @param stage to add.
- * @param pathToConfig from which all configuration can be read.
+ * @param options indicating filesystem paths where the configuration will be
+ *    written.
  * @returns `true` after stage exists in the config.
  * @throws if `stage` can not be pushed into configuration.
  */
-export async function pushStage(stage: string, pathToConfig?: string) {
-  const projectFile = getProjectConfig(pathToConfig);
+export async function pushStage(stage: string, options: ConfigOptions = {}) {
+  const { pathToConfig, projectConfigFileName } = options;
+  const projectFile = getProjectConfig(pathToConfig, projectConfigFileName);
   const config = await projectFile.read();
   const stages = config.stages;
   if (stages.includes(stage)) {
@@ -99,12 +117,14 @@ export async function pushStage(stage: string, pathToConfig?: string) {
 
 /**
  * Read `Config` from `pathToConfig` allowing for partial results.
- * @param pathToConfig from which all configuration can be read.
+ * @param options indicating filesystem paths where the configuration will be
+ *    read.
  * @returns a `Config` where all properties are optional (may be `undefined`).
  */
-export async function readConfig(pathToConfig?: string) {
-  const awsConfig = getAwsConfig(pathToConfig);
-  const projectConfig = getProjectConfig(pathToConfig);
+export async function readConfig(options: ConfigOptions = {}) {
+  const { awsConfigFileName, pathToConfig, projectConfigFileName } = options;
+  const awsConfig = getAwsConfig(pathToConfig, awsConfigFileName);
+  const projectConfig = getProjectConfig(pathToConfig, projectConfigFileName);
   const config: Partial<FullConfig> = {
     ...(await awsConfig.partial()),
     ...(await projectConfig.partial()),
@@ -115,16 +135,18 @@ export async function readConfig(pathToConfig?: string) {
 /**
  * Writes the given `awsConfig` and `projectConfig` as JSON files within
  * `pathToConfig`.
- * @param awsConfig to write.
- * @param projectConfig to write.
- * @param pathToConfig filesystem path where the configuration will be written.
+ * @param config to write.
+ * @param options indicating filesystem paths where the configuration will be
+ *    written.
  * @returns the paths to which the files were written.
  * @throws if there is an unexpected error creating or opening `pathToConfig`.
  */
 export async function writeConfig(
   config: FullConfig,
-  pathToConfig: string = DEFAULT_CONFIG_PATH
+  options: ConfigOptions = {}
 ): Promise<string[]> {
+  const { awsConfigFileName, projectConfigFileName } = options;
+  const pathToConfig = options.pathToConfig || DEFAULT_CONFIG_PATH;
   const { accessKeyId, rootPath, secretAccessKey, stages } = config;
   const projectConfig: ProjectConfig = {
     rootPath,
@@ -138,7 +160,9 @@ export async function writeConfig(
   if (!hasConfigDirectory) {
     throw new Error(`Unable to write into or create ${pathToConfig}.`);
   }
-  const awsResult = getAwsConfig(pathToConfig).write(awsConfig);
-  const projectResult = getProjectConfig(pathToConfig).write(projectConfig);
+  const awsFile = getAwsConfig(pathToConfig, awsConfigFileName);
+  const awsResult = awsFile.write(awsConfig);
+  const projectFile = getProjectConfig(pathToConfig, projectConfigFileName);
+  const projectResult = projectFile.write(projectConfig);
   return Promise.all([awsResult, projectResult]);
 }

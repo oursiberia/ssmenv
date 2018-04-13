@@ -155,7 +155,9 @@ export class Init extends Command {
     args: Args,
     flags: Flags
   ): Promise<Partial<Answers>> {
-    const currentConfig = await readConfig(DEFAULT_CONFIG_PATH);
+    const currentConfig = await readConfig({
+      pathToConfig: DEFAULT_CONFIG_PATH,
+    });
     return {
       awsAccess: args.awsAccess || currentConfig.accessKeyId,
       awsSecret: args.awsSecret || currentConfig.secretAccessKey,
@@ -252,7 +254,9 @@ export class Init extends Command {
       stages,
     };
 
-    const paths = await writeConfig(config, DEFAULT_CONFIG_PATH);
+    const paths = await writeConfig(config, {
+      pathToConfig: DEFAULT_CONFIG_PATH,
+    });
     const keyword = chalk.keyword('green');
     const [awsPath, projectPath] = paths.map(v => keyword(v));
     const stdout = flags.quiet
