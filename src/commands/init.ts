@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { Command, flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';

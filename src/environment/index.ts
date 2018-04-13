@@ -1,4 +1,4 @@
-import { AWSError, SSM } from 'aws-sdk';
+import { SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
 import { Tag } from '../tag';
 import { AwsSsmProxy } from './AwsSsmProxy';
@@ -13,12 +13,6 @@ const keyRegex = new RegExp(`^${PART.source}$`);
  * empty.
  */
 const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
-/**
- * Should match strings like `/Dev/DBServer/MySQL/` with multiple intermediate
- * parts. There must be leading and trailing `/` but they may not be adjacent to
- * one another.
- */
-const rootPathRegex = new RegExp(`^/((${PART.source})(/${PART.source})*?/)?$`);
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: EnvironmentVariable) => T;
@@ -98,9 +92,9 @@ export class Environment {
     }
     const keys = input.slice(1, -1).split('/');
     if (keys.length === 1 && keys[0] === '') {
-      return;
+      return; // Should be handled by input === '/'
     } else {
-      const results = keys.forEach(key => {
+      keys.forEach(key => {
         Environment.validatePathPart('Path part', key);
       });
     }
@@ -266,7 +260,7 @@ export class Environment {
     // Put tags on variable
     return {
       ...variable,
-      tags,
+      tags: result === undefined ? [] : tags,
     };
   }
 
@@ -340,7 +334,7 @@ export class Environment {
     const isReady = await this.isReady;
     const fqn = this.fqn(key);
     const cacheKeys = this.cache.keys();
-    return cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
+    return isReady && cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
   }
 
   /**

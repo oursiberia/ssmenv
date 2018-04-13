@@ -3,8 +3,7 @@ import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
 import { StageActorCommand } from '../../command/StageActorCommand';
-import { getEnvironment, pushStage } from '../../config/fs';
-import { Option } from '../../environment';
+import { getEnvironment } from '../../config/fs';
 import { make as makeExample } from '../../example';
 import { stageFlag, WithStageFlag } from '../../flags/stage';
 

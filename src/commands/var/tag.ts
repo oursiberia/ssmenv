@@ -4,7 +4,7 @@ import { args as Parser } from '@oclif/parser';
 import { Key, keyPositional } from '../../arguments/key';
 import { StageActorCommand } from '../../command/StageActorCommand';
 import { getEnvironment } from '../../config/fs';
-import { EnvironmentVariable, Option } from '../../environment';
+import { EnvironmentVariable } from '../../environment';
 import { make as makeExample } from '../../example';
 import { stageFlag, WithStageFlag } from '../../flags/stage';
 import { tagFlag, WithTagFlag } from '../../flags/tag';

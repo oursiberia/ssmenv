@@ -5,7 +5,7 @@ import { Key, keyPositional } from '../../arguments/key';
 import { Value, valuePositional } from '../../arguments/value';
 import { StageActorCommand } from '../../command/StageActorCommand';
 import { getEnvironment } from '../../config/fs';
-import { EnvironmentVariable, Option } from '../../environment';
+import { EnvironmentVariable } from '../../environment';
 import { make as makeExample } from '../../example';
 import { descriptionFlag, WithDescriptionFlag } from '../../flags/description';
 import { stageFlag, WithStageFlag } from '../../flags/stage';

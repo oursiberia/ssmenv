@@ -93,7 +93,7 @@ export async function pushStage(stage: string, pathToConfig?: string) {
       stages: [...stages, stage],
     };
     const result = await projectFile.write(newConfig);
-    return true;
+    return result === projectFile.fileName;
   }
 }
 

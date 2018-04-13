@@ -2,7 +2,8 @@
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
     "member-access": [true, "no-public"],
-    "interface-name": [false],
-    "no-shadowed-variable": [false]
+    "interface-name": false,
+    "no-shadowed-variable": false,
+    "no-unused-variable": true
   }
 }

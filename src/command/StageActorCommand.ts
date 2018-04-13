@@ -1,5 +1,4 @@
-import { Command, flags } from '@oclif/command';
-import { args as Parser } from '@oclif/parser';
+import { Command, flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 
 import { pushStage } from '../config/fs';
 import { Option } from '../environment';
