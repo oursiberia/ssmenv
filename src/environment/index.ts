@@ -120,9 +120,9 @@ export class Environment {
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
    * retrieve parameter valeus.
-   * @param {string} fqnPrefix path to search.
-   * @param {AWS.SSM} ssm to use for retrieving parameters.
-   * @param {EnvironmentOptions} options for requesting parameters.
+   * @param fqnPrefix path to search.
+   * @param ssm to use for retrieving parameters.
+   * @param options for requesting parameters.
    */
   constructor(fqnPrefix: string, ssm: SSM, options: EnvironmentOptions = {}) {
     this.validateFqn(fqnPrefix);
@@ -163,11 +163,11 @@ export class Environment {
   /**
    * Retrieve a configuration parameter with `key` from the parameter store. The
    * `convert` function transforms the resulting string value into any other type.
-   * @param {string} key to search for.
-   * @param {function} convert to change `string` value into another type.
-   * @param {Type} T the resulting type from `convert`.
-   * @returns {undefined | T} `undefined` if a value for `key` can not be found,
-   *    the result of `convert` on the found value otherwise.
+   * @param key to search for.
+   * @param convert to change `string` value into another type.
+   * @param T the resulting type from `convert`.
+   * @returns `undefined` if a value for `key` can not be found, the result of
+   *    `convert` on the found value otherwise.
    */
   async getAs<T>(key: Key, convert: Convert<T>): Promise<Option<T>> {
     const value = await this.get(key);
@@ -180,9 +180,9 @@ export class Environment {
 
   /**
    * Retrieve a configuration parameter with `key` from the parameter store.
-   * @param {string} key to search for.
-   * @returns {undefined | string} `undefined` if a value for `key` can not be
-   *    found, the found `string` value otherwise.
+   * @param key to search for.
+   * @returns `undefined` if a value for `key` can not be found, the found
+   *    `EnvironmentVariable` value otherwise.
    */
   async get(key: Key): Promise<Option<EnvironmentVariable>> {
     const isReady = await this.isReady;
@@ -279,8 +279,8 @@ export class Environment {
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
    * parameter tree for the given fqnPrefix.
-   * @returns {Promise<Parameter[]>} the array of `SSM.Parameter` values
-   *    found when using the `fqnPrefix` as a path.
+   * @returns the array of `SSM.Parameter` values found when using the
+   *    `fqnPrefix` as a path.
    */
   private async fetch(): Promise<Parameter[]> {
     const options: SSM.GetParametersByPathRequest = {
@@ -317,7 +317,7 @@ export class Environment {
 
   /**
    * Check that the given `param` has a `Name` defined and a valid `Type`.
-   * @param {AWS.SSM.Parameter} param to test
+   * @param param to test
    * @returns `true` if `Name` exists and `Type` is a convertable type, `false`
    *    otherwise.
    */
@@ -370,9 +370,9 @@ export class Environment {
   /**
    * Convert the given `param` to an object conforming to the `EnvironmentVariable`
    * interface.
-   * @param {AWS.SSM.Parameter} param to be converted.
-   * @return {EnvironmentVariable | undefined} `undefined` if the given `param`
-   *    can not be converted; the `EnvironmentVariable` otherwise.
+   * @param param to be converted.
+   * @return `undefined` if the given `param` can not be converted; the
+   *    `EnvironmentVariable` otherwise.
    */
   private toEnvironmentVariable(param: Parameter): Option<EnvironmentVariable> {
     const path = param.Name || '';
