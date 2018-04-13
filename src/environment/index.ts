@@ -22,14 +22,8 @@ export type FQN = string;
 export type Key = string;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
-/** Type alias for `AWS.SSM.GetParametersByPathResult`. */
-export type Options = Partial<SSM.GetParametersByPathRequest>;
 /** Type alias for `AWS.SSM.ParamterHistory`. */
 export type Parameter = SSM.ParameterHistory;
-/** Type alias for `AWS.SSM.PutParameterRequest`. */
-export type PutRequest = SSM.PutParameterRequest;
-/** Type alias for `AWS.SSM.PutParameterResult`. */
-export type PutResult = SSM.PutParameterResult;
 
 /**
  * Options available when creating an `Environment` instance.
@@ -230,7 +224,7 @@ export class Environment {
    */
   async put(key: Key, value: string, description?: string) {
     const fqn = this.fqn(key);
-    const request: PutRequest = {
+    const request: SSM.PutParameterRequest = {
       Description: description,
       Name: fqn,
       Overwrite: true,
