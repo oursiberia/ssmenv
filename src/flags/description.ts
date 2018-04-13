@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command';
 
 export interface WithDescriptionFlag {
   description?: string;

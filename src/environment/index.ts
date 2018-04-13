@@ -1,4 +1,4 @@
-import { AWSError, SSM } from 'aws-sdk';
+import { SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
 import { Tag } from '../tag';
 import { AwsSsmProxy } from './AwsSsmProxy';
@@ -13,12 +13,6 @@ const keyRegex = new RegExp(`^${PART.source}$`);
  * empty.
  */
 const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
-/**
- * Should match strings like `/Dev/DBServer/MySQL/` with multiple intermediate
- * parts. There must be leading and trailing `/` but they may not be adjacent to
- * one another.
- */
-const rootPathRegex = new RegExp(`^/((${PART.source})(/${PART.source})*?/)?$`);
 
 /** Type alias for a function converting a string to another, parameterized type. */
 export type Convert<T> = (value: EnvironmentVariable) => T;
@@ -28,14 +22,18 @@ export type FQN = string;
 export type Key = string;
 /** Type alias for a parameterized type that may be undefined. */
 export type Option<T> = T | undefined;
-/** Type alias for `AWS.SSM.GetParametersByPathResult`. */
-export type Options = Partial<SSM.GetParametersByPathRequest>;
 /** Type alias for `AWS.SSM.ParamterHistory`. */
 export type Parameter = SSM.ParameterHistory;
-/** Type alias for `AWS.SSM.PutParameterRequest`. */
-export type PutRequest = SSM.PutParameterRequest;
-/** Type alias for `AWS.SSM.PutParameterResult`. */
-export type PutResult = SSM.PutParameterResult;
+
+/**
+ * Options available when creating an `Environment` instance.
+ */
+export interface EnvironmentOptions {
+  /** Whether or not we should attempt to decrypt SecureString values. */
+  withDecryption?: boolean;
+  /** The key to use when encrypting values. */
+  withEncryption?: string;
+}
 
 /**
  * Structure of an environment variable.
@@ -98,9 +96,9 @@ export class Environment {
     }
     const keys = input.slice(1, -1).split('/');
     if (keys.length === 1 && keys[0] === '') {
-      return;
+      return; // Should be handled by input === '/'
     } else {
-      const results = keys.forEach(key => {
+      keys.forEach(key => {
         Environment.validatePathPart('Path part', key);
       });
     }
@@ -114,19 +112,19 @@ export class Environment {
   private fqnPrefix: string;
   /** RegExp to find key value at the end of the path (extracting `rootPath`). */
   private keyMatcher: RegExp;
-  /** Options to include when requesting parameters. */
-  private options: Options;
+  /** EnvironmentOptions to include when requesting parameters. */
+  private options: EnvironmentOptions;
   /** The `AWS.SSM` instance used to retrieve data. */
   private ssm: AwsSsmProxy;
 
   /**
    * Create a `Environment` instance for the given `rootPath` using `ssm` to
    * retrieve parameter valeus.
-   * @param {string} fqnPrefix path to search.
-   * @param {AWS.SSM} ssm to use for retrieving parameters.
-   * @param {Options} options for requesting parameters.
+   * @param fqnPrefix path to search.
+   * @param ssm to use for retrieving parameters.
+   * @param options for requesting parameters.
    */
-  constructor(fqnPrefix: string, ssm: SSM, options: Options = {}) {
+  constructor(fqnPrefix: string, ssm: SSM, options: EnvironmentOptions = {}) {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;
@@ -165,11 +163,11 @@ export class Environment {
   /**
    * Retrieve a configuration parameter with `key` from the parameter store. The
    * `convert` function transforms the resulting string value into any other type.
-   * @param {string} key to search for.
-   * @param {function} convert to change `string` value into another type.
-   * @param {Type} T the resulting type from `convert`.
-   * @returns {undefined | T} `undefined` if a value for `key` can not be found,
-   *    the result of `convert` on the found value otherwise.
+   * @param key to search for.
+   * @param convert to change `string` value into another type.
+   * @param T the resulting type from `convert`.
+   * @returns `undefined` if a value for `key` can not be found, the result of
+   *    `convert` on the found value otherwise.
    */
   async getAs<T>(key: Key, convert: Convert<T>): Promise<Option<T>> {
     const value = await this.get(key);
@@ -182,9 +180,9 @@ export class Environment {
 
   /**
    * Retrieve a configuration parameter with `key` from the parameter store.
-   * @param {string} key to search for.
-   * @returns {undefined | string} `undefined` if a value for `key` can not be
-   *    found, the found `string` value otherwise.
+   * @param key to search for.
+   * @returns `undefined` if a value for `key` can not be found, the found
+   *    `EnvironmentVariable` value otherwise.
    */
   async get(key: Key): Promise<Option<EnvironmentVariable>> {
     const isReady = await this.isReady;
@@ -226,7 +224,7 @@ export class Environment {
    */
   async put(key: Key, value: string, description?: string) {
     const fqn = this.fqn(key);
-    const request: PutRequest = {
+    const request: SSM.PutParameterRequest = {
       Description: description,
       Name: fqn,
       Overwrite: true,
@@ -266,7 +264,7 @@ export class Environment {
     // Put tags on variable
     return {
       ...variable,
-      tags,
+      tags: result === undefined ? [] : tags,
     };
   }
 
@@ -281,14 +279,14 @@ export class Environment {
   /**
    * Asynchronously fetches all the parameter values, recursively traversing the
    * parameter tree for the given fqnPrefix.
-   * @returns {Promise<Parameter[]>} the array of `SSM.Parameter` values
-   *    found when using the `fqnPrefix` as a path.
+   * @returns the array of `SSM.Parameter` values found when using the
+   *    `fqnPrefix` as a path.
    */
   private async fetch(): Promise<Parameter[]> {
     const options: SSM.GetParametersByPathRequest = {
-      ...this.options,
       Path: `${this.fqnPrefix}`,
       Recursive: true,
+      WithDecryption: this.options.withDecryption,
     };
     const result = await this.ssm.getParametersByPath(options);
     return result.Parameters || [];
@@ -319,7 +317,7 @@ export class Environment {
 
   /**
    * Check that the given `param` has a `Name` defined and a valid `Type`.
-   * @param {AWS.SSM.Parameter} param to test
+   * @param param to test
    * @returns `true` if `Name` exists and `Type` is a convertable type, `false`
    *    otherwise.
    */
@@ -327,7 +325,7 @@ export class Environment {
     const hasName = param.Name !== undefined;
     const isString = param.Type === 'String';
     const isSecure = param.Type === 'SecureString';
-    const withDecryption = this.options.WithDecryption || false;
+    const withDecryption = this.options.withDecryption || false;
     return hasName && (isString || (withDecryption && isSecure));
   }
 
@@ -340,7 +338,7 @@ export class Environment {
     const isReady = await this.isReady;
     const fqn = this.fqn(key);
     const cacheKeys = this.cache.keys();
-    return cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
+    return isReady && cacheKeys.findIndex(cacheKey => cacheKey === fqn) !== -1;
   }
 
   /**
@@ -372,9 +370,9 @@ export class Environment {
   /**
    * Convert the given `param` to an object conforming to the `EnvironmentVariable`
    * interface.
-   * @param {AWS.SSM.Parameter} param to be converted.
-   * @return {EnvironmentVariable | undefined} `undefined` if the given `param`
-   *    can not be converted; the `EnvironmentVariable` otherwise.
+   * @param param to be converted.
+   * @return `undefined` if the given `param` can not be converted; the
+   *    `EnvironmentVariable` otherwise.
    */
   private toEnvironmentVariable(param: Parameter): Option<EnvironmentVariable> {
     const path = param.Name || '';
