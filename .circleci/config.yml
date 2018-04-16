@@ -125,8 +125,7 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - node-8-env:
-          <<: *tag_filters
+      - node-8-env: *tag_filters
       - release-env:
           context: org-global
           filters: &tag_branch_filters
@@ -139,14 +138,11 @@ workflows:
             - node-8-env
   "ssmenv":
     jobs:
-      - node-latest-ssmenv:
-          <<: *tag_filters
-      - node-8-ssmenv:
-          <<: *tag_filters
+      - node-latest-ssmenv: *tag_filters
+      - node-8-ssmenv: *tag_filters
       - release-ssmenv:
           context: org-global
-          filters:
-            <<: *tag_branch_filters
+          filters: *tag_branch_filters
           requires:
             - node-latest-ssmenv
             - node-8-ssmenv
