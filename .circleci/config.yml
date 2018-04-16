@@ -10,12 +10,12 @@ jobs:
       - checkout
       # This works because "A key is searched against existing keys as a prefix."
       - restore_cache: &restore_cache_env
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
+          key: __2a34s5edr6ft7guyhijok_ssmenv_buildtest
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv
       - save_cache: &save_cache_env
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}-{{ .BuildNum }}
+          key: __2a34s5edr6ft7guyhijok_ssmenv_buildtest
           paths:
             - ~/cli/packages/ssmenv/node_modules
             - /usr/local/share/.cache/yarn
