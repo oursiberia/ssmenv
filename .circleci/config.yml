@@ -1,53 +1,118 @@
 ---
 version: 2
 jobs:
-  node-latest: &test
+  node-latest-env: &test_env
     docker:
       - image: node:latest
     working_directory: ~/cli
     environment:
     steps:
       - checkout
-      - restore_cache: &restore_cache
+      - restore_cache: &restore_cache_env
           keys:
-            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "yarn.lock"}}
-            - v1-yarn-{{checksum ".circleci/config.yml"}}
-      - run: yarn
-      - run: ./bin/run --version
-      - run: ./bin/run --help
-      - run: mkdir -p reports/junit
+            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv/yarn.lock"}}
+      - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssmenv
+      - run:
+          command: mkdir -p reports/junit
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: "Linter"
           command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: "Test Suite"
           command: yarn jest --ci --testResultsProcessor="jest-junit"
+          working_directory: ~/cli/packages/ssmenv
           environment:
             JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
-      - store_test_results: &store_test_results
-          path: reports/junit
-  node-8:
-    <<: *test
+      - store_test_results:
+          path: packages/ssmenv/reports/junit
+  node-8-env:
+    <<: *test_env
     docker:
       - image: node:8
-  release:
-    <<: *test
+  release-env:
+    <<: *test_env
     steps:
       - add_ssh_keys
       - checkout
-      - restore_cache: *restore_cache
+      - restore_cache: *restore_cache_env
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/cli/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: Publish package
           command: |
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
+          working_directory: ~/cli/packages/ssmenv
       - save_cache:
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
           paths:
-            - ~/cli/node_modules
+            - ~/cli/packages/ssmenv/node_modules
+            - /usr/local/share/.cache/yarn
+            - /usr/local/share/.config/yarn
+  node-latest-cli: &test_cli
+    docker:
+      - image: node:latest
+    working_directory: ~/cli
+    environment:
+    steps:
+      - checkout
+      - restore_cache: &restore_cache_cli
+          keys:
+            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv-cli/yarn.lock"}}
+      - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          command: ./bin/run --version
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          command: ./bin/run --help
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          command: mkdir -p reports/junit
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          name: "Linter"
+          command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          name: "Test Suite"
+          command: yarn jest --ci --testResultsProcessor="jest-junit"
+          working_directory: ~/cli/packages/ssmenv-cli
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
+      - store_test_results:
+          path: packages/ssmenv-cli/reports/junit
+  node-8-cli:
+    <<: *test_cli
+    docker:
+      - image: node:8
+  release-cli:
+    <<: *test_cli
+    steps:
+      - add_ssh_keys
+      - checkout
+      - restore_cache: *restore_cache_cli
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          name: Publish package
+          command: |
+            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
+            yarn publish --new-version="${VERSION}"
+          working_directory: ~/cli/packages/ssmenv-cli
+      - save_cache:
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
+          paths:
+            - ~/cli/packages/ssmenv-cli/node_modules
             - /usr/local/share/.cache/yarn
             - /usr/local/share/.config/yarn
 
@@ -55,23 +120,29 @@ workflows:
   version: 2
   "ssmenv":
     jobs:
-      - node-latest:
+      - node-latest-env: &tag_filters
           context: org-global
           filters:
             tags:
               only: /^v.*/
-      - node-8:
+      - node-8-env: *tag_filters
+      - release-env:
           context: org-global
-          filters:
-            tags:
-              only: /^v.*/
-      - release:
-          context: org-global
-          filters:
+          filters: &tag_branch_filters
             tags:
               only: /^v.*/
             branches:
               ignore: /.*/
           requires:
-            - node-latest
-            - node-8
+            - node-latest-env
+            - node-8-env
+  "ssmenv-cli":
+    jobs:
+      - node-latest-cli: *tag_filters
+      - node-8-cli: *tag_filters
+      - release-cli:
+          context: org-global
+          filters: *tag_branch_filters
+          requires:
+            - node-latest-cli
+            - node-8-cli

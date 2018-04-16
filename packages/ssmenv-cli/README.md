@@ -1,11 +1,11 @@
-# ssmenv
+# ssmenv-cli
 
-Manage environment variables with AWS SSM.
-
-[![Version](https://img.shields.io/npm/v/ssmenv.svg)](https://npmjs.org/package/ssmenv)
+[![Version](https://img.shields.io/npm/v/ssmenv-cli.svg)](https://npmjs.org/package/ssmenv-cli)
 [![CircleCI](https://circleci.com/gh/oursiberia/ssmenv.svg?style=svg)](https://circleci.com/gh/oursiberia/ssmenv)
-[![Downloads/week](https://img.shields.io/npm/dw/ssmenv.svg)](https://npmjs.org/package/ssmenv)
-[![License](https://img.shields.io/npm/l/ssmenv.svg)](https://github.com/oursiberia/ssmenv/blob/master/package.json)
+[![Downloads/week](https://img.shields.io/npm/dw/ssmenv-cli.svg)](https://npmjs.org/package/ssmenv-cli)
+[![License](https://img.shields.io/npm/l/ssmenv-cli.svg)](https://github.com/oursiberia/ssmenv/blob/master/packages/ssmenv-cli/package.json)
+
+Manage environment variables with AWS SSM from the command line.
 
 * [Usage](#usage)
 * [Commands](#commands)

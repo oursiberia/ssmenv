@@ -1,0 +1,9 @@
+# defaults
+*-debug.log
+*-error.log
+/lib
+/node_modules
+
+# Project specific
+.ssmenv
+.env.*
