@@ -1,17 +1,70 @@
 ---
 version: 2
 jobs:
-  node-latest: &test
+  node-latest-env: &test_env
     docker:
       - image: node:latest
     working_directory: ~/cli
     environment:
     steps:
       - checkout
-      - restore_cache: &restore_cache
+      - restore_cache: &restore_cache_env
+          keys:
+            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssm-environment/yarn.lock"}}
+      - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssm-environment
+      - run:
+          command: mkdir -p reports/junit
+          working_directory: ~/cli/packages/ssm-environment
+      - run:
+          name: "Linter"
+          command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
+          working_directory: ~/cli/packages/ssm-environment
+      - run:
+          name: "Test Suite"
+          command: yarn jest --ci --testResultsProcessor="jest-junit"
+          working_directory: ~/cli/packages/ssm-environment
+          environment:
+            JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
+      - store_test_results:
+          path: packages/ssm-environment/reports/junit
+  node-8-env:
+    <<: *test_env
+    docker:
+      - image: node:8
+  release-env:
+    <<: *test_env
+    steps:
+      - add_ssh_keys
+      - checkout
+      - restore_cache: *restore_cache_env
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+          working_directory: ~/cli/packages/ssm-environment
+      - run:
+          name: Publish package
+          command: |
+            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
+            yarn publish --new-version="${VERSION}"
+          working_directory: ~/cli/packages/ssm-environment
+      - save_cache:
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssm-environment/yarn.lock"}}
+          paths:
+            - ~/cli/packages/ssm-environment/node_modules
+            - /usr/local/share/.cache/yarn
+            - /usr/local/share/.config/yarn
+  node-latest-ssmenv: &test_ssmenv
+    docker:
+      - image: node:latest
+    working_directory: ~/cli
+    environment:
+    steps:
+      - checkout
+      - restore_cache: &restore_cache_ssmenv
           keys:
             - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv/yarn.lock"}}
-            - v1-yarn-{{checksum ".circleci/config.yml"}}
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv
@@ -34,21 +87,21 @@ jobs:
           working_directory: ~/cli/packages/ssmenv
           environment:
             JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
-      - store_test_results: &store_test_results
+      - store_test_results:
           path: packages/ssmenv/reports/junit
-  node-8:
-    <<: *test
+  node-8-ssmenv:
+    <<: *test_ssmenv
     docker:
       - image: node:8
-  release:
-    <<: *test
+  release-ssmenv:
+    <<: *test_ssmenv
     steps:
       - add_ssh_keys
       - checkout
-      - restore_cache: *restore_cache
+      - restore_cache: *restore_cache_ssmenv
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/cli/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
           working_directory: ~/cli/packages/ssmenv
       - run:
           name: Publish package
@@ -57,7 +110,7 @@ jobs:
             yarn publish --new-version="${VERSION}"
           working_directory: ~/cli/packages/ssmenv
       - save_cache:
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
           paths:
             - ~/cli/packages/ssmenv/node_modules
             - /usr/local/share/.cache/yarn
@@ -67,23 +120,31 @@ workflows:
   version: 2
   "ssmenv":
     jobs:
-      - node-latest:
+      - node-latest-env: &tag-filters
           context: org-global
           filters:
             tags:
               only: /^v.*/
-      - node-8:
+      - node-8-env:
+          <<: *tag-filters
+      - release-env:
           context: org-global
-          filters:
-            tags:
-              only: /^v.*/
-      - release:
-          context: org-global
-          filters:
+          filters: &tag-branch-filters
             tags:
               only: /^v.*/
             branches:
               ignore: /.*/
           requires:
-            - node-latest
-            - node-8
+            - node-latest-env
+            - node-8-env
+      - node-latest-ssmenv:
+          <<: *tag-filters
+      - node-8-ssmenv:
+          <<: *tag-filters
+      - release-ssmenv:
+          context: org-global
+          filters:
+            <<: *tag-branch-filters
+          requires:
+            - node-latest-ssmenv
+            - node-8-ssmenv
