@@ -8,12 +8,18 @@ jobs:
     environment:
     steps:
       - checkout
+      # This works because "A key is searched against existing keys as a prefix."
       - restore_cache: &restore_cache_env
-          keys:
-            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv/yarn.lock"}}
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv
+      - save_cache: &save_cache_env
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}-{{ .BuildNum }}
+          paths:
+            - ~/cli/packages/ssmenv/node_modules
+            - /usr/local/share/.cache/yarn
+            - /usr/local/share/.config/yarn
       - run:
           command: mkdir -p reports/junit
           working_directory: ~/cli/packages/ssmenv
@@ -49,12 +55,6 @@ jobs:
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
           working_directory: ~/cli/packages/ssmenv
-      - save_cache:
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
-          paths:
-            - ~/cli/packages/ssmenv/node_modules
-            - /usr/local/share/.cache/yarn
-            - /usr/local/share/.config/yarn
   node-latest-cli: &test_cli
     docker:
       - image: node:latest
@@ -62,12 +62,18 @@ jobs:
     environment:
     steps:
       - checkout
+      # This works because "A key is searched against existing keys as a prefix."
       - restore_cache: &restore_cache_cli
-          keys:
-            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv-cli/yarn.lock"}}
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv-cli
+      - save_cache: &save_cache_cli
+          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}-{{ .BuildNum }}
+          paths:
+            - ~/cli/packages/ssmenv-cli/node_modules
+            - /usr/local/share/.cache/yarn
+            - /usr/local/share/.config/yarn
       - run:
           command: ./bin/run --version
           working_directory: ~/cli/packages/ssmenv-cli
@@ -109,12 +115,6 @@ jobs:
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
           working_directory: ~/cli/packages/ssmenv-cli
-      - save_cache:
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
-          paths:
-            - ~/cli/packages/ssmenv-cli/node_modules
-            - /usr/local/share/.cache/yarn
-            - /usr/local/share/.config/yarn
 
 workflows:
   version: 2
