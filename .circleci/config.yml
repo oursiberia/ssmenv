@@ -10,12 +10,12 @@ jobs:
       - checkout
       # This works because "A key is searched against existing keys as a prefix."
       - restore_cache: &restore_cache_env
-          key: __2a34s5edr6ft7guyhijok_ssmenv_buildtest
+          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv
       - save_cache: &save_cache_env
-          key: __2a34s5edr6ft7guyhijok_ssmenv_buildtest
+          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}-{{ .BuildNum }}
           paths:
             - ~/cli/packages/ssmenv/node_modules
             - /usr/local/share/.cache/yarn
@@ -46,6 +46,9 @@ jobs:
       - checkout
       - restore_cache: *restore_cache_env
       - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssmenv
+      - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
           working_directory: ~/cli/packages/ssmenv
@@ -55,6 +58,7 @@ jobs:
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
           working_directory: ~/cli/packages/ssmenv
+      - save_cache: *save_cache_env
   node-latest-cli: &test_cli
     docker:
       - image: node:latest
@@ -64,12 +68,12 @@ jobs:
       - checkout
       # This works because "A key is searched against existing keys as a prefix."
       - restore_cache: &restore_cache_cli
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
+          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
       - run:
           command: yarn
           working_directory: ~/cli/packages/ssmenv-cli
       - save_cache: &save_cache_cli
-          key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}-{{ .BuildNum }}
+          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}-{{ .BuildNum }}
           paths:
             - ~/cli/packages/ssmenv-cli/node_modules
             - /usr/local/share/.cache/yarn
@@ -106,6 +110,9 @@ jobs:
       - checkout
       - restore_cache: *restore_cache_cli
       - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
           working_directory: ~/cli/packages/ssmenv-cli
@@ -115,6 +122,7 @@ jobs:
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
           working_directory: ~/cli/packages/ssmenv-cli
+      - save_cache: *save_cache_cli
 
 workflows:
   version: 2
