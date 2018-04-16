@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
+# _NEXT_
+
+## Added
+
+* Use `ssmenv` package classes for interacting with the API of AWS SSM.
+
+## Removed
+
+* Remove `Environment` export.
+
 # v0.5.5 (2018-04-16)
 
 No change. Keep version locked to `ssmenv` package.

@@ -1,5 +1,5 @@
 import { flags } from '@oclif/command';
-import { Environment } from '../environment';
+import { Environment } from 'ssmenv';
 
 function validateStage(param: string, context?: any) {
   Environment.validatePathPart('Stage', param);

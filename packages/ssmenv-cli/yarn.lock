@@ -125,10 +125,6 @@
   version "22.2.3"
   resolved "https://registry.yarnpkg.com/@types/jest/-/jest-22.2.3.tgz#0157c0316dc3722c43a7b71de3fdf3acbccef10d"
 
-"@types/lru-cache@^4.1.0":
-  version "4.1.0"
-  resolved "https://registry.yarnpkg.com/@types/lru-cache/-/lru-cache-4.1.0.tgz#ef69ce9c3ebb46bd146f0d80f0c1ce38b0508eae"
-
 "@types/node@*", "@types/node@^9.6.2":
   version "9.6.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.4.tgz#0ef7b4cfc3499881c81e0ea1ce61a23f6f4f5b42"
@@ -4110,6 +4106,13 @@ sshpk@^1.7.0:
     ecc-jsbn "~0.1.1"
     jsbn "~0.1.0"
     tweetnacl "~0.14.0"
+
+ssmenv@^0.5.0:
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/ssmenv/-/ssmenv-0.5.5.tgz#852afc4f27f4bb785406a8f11e7d1c6809b23a0b"
+  dependencies:
+    aws-sdk "^2.222.1"
+    lru-cache "^4.1.2"
 
 stack-utils@^1.0.1:
   version "1.0.1"

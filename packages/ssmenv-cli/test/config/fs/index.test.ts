@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 /// <reference types="node" />
+import { AwsSsmProxy, Environment } from 'ssmenv';
 import { AwsRequiredProperties } from '../../../src/config/AwsConfig';
 import {
   getDirectEnvironment,
@@ -7,8 +8,6 @@ import {
   readConfig,
 } from '../../../src/config/fs/index';
 import { ProjectRequiredProperties } from '../../../src/config/ProjectConfig';
-import { Environment } from '../../../src/environment';
-import { AwsSsmProxy } from '../../../src/environment/AwsSsmProxy';
 
 jest.mock('aws-sdk', () => {
   return {
