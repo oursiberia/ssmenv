@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
-# _NEXT_
+# 0.5.0 (2018-04-16)
+
+**The `ssmenv-cli` package is a republish of what used to be the `ssmenv`
+package. This package contains all the CLI functionality has which was in
+`ssmenv`.**
 
 ## Changed
 

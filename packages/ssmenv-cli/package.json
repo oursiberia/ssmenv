@@ -1,7 +1,7 @@
 {
   "name": "ssmenv-cli",
   "description": "Manage environment variables with AWS SSM.",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "author": "Siberia <dev@siberia.io>",
   "contributors": [
     "Bryan Swift <bryan@siberia.io>"
