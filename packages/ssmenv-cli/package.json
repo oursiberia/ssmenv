@@ -1,6 +1,6 @@
 {
-  "name": "ssmenv",
-  "description": "Read and write environment variables stored within AWS SSM.",
+  "name": "ssmenv-cli",
+  "description": "Manage environment variables with AWS SSM.",
   "version": "0.4.1",
   "author": "Siberia <dev@siberia.io>",
   "contributors": [
@@ -9,12 +9,24 @@
   "maintainers": [
     "Bryan Swift <bryan@siberia.io>"
   ],
+  "bin": {
+    "ssmenv": "./bin/run"
+  },
   "bugs": "https://github.com/oursiberia/ssmenv/issues",
   "dependencies": {
+    "@oclif/command": "^1.4.7",
+    "@oclif/config": "^1.3.62",
+    "@oclif/parser": "^3.2.11",
+    "@oclif/plugin-help": "^1.2.2",
     "aws-sdk": "^2.222.1",
+    "chalk": "^2.3.2",
+    "inquirer": "^5.2.0",
     "lru-cache": "^4.1.2"
   },
   "devDependencies": {
+    "@oclif/dev-cli": "^1.4.4",
+    "@oclif/tslint": "^1.1.0",
+    "@types/inquirer": "^0.0.41",
     "@types/jest": "^22.2.3",
     "@types/lru-cache": "^4.1.0",
     "@types/node": "^9.6.2",
@@ -23,8 +35,10 @@
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-prettier": "^2.6.0",
+    "globby": "^8.0.1",
     "jest": "^22.4.3",
     "jest-junit": "^3.6.0",
+    "pkg": "^4.3.1",
     "prettier": "^1.11.1",
     "ts-jest": "^22.4.2",
     "ts-node": "5",
@@ -36,24 +50,49 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "files": ["/lib"],
+  "files": [
+    ".oclif.manifest.json",
+    "/bin",
+    "/lib"
+  ],
   "homepage": "https://github.com/oursiberia/ssmenv",
   "keywords": [
+    "oclif",
     "aws",
     "ssm"
   ],
   "license": "MIT",
   "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "ssmenv",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
   "repository": "oursiberia/ssmenv",
   "scripts": {
+    "dist": "tsc && pkg --targets=node8-macos,node8-linux,node8-windows --out-path=dist .",
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
-    "posttest": "yarn run lint",
-    "prepack": "rm -rf lib",
-    "test": "jest"
+    "postpack": "rm -f .oclif.manifest.json",
+    "posttest": "tsc -p . --noEmit && tslint -p . -t stylish",
+    "prepack": "rm -rf lib && tsc && oclif-dev manifest && oclif-dev readme",
+    "test": "jest --watch",
+    "version": "oclif-dev readme && git add README.md"
   },
   "types": "lib/index.d.ts",
+  "pkg": {
+    "scripts": "lib/**/*.js"
+  },
   "jest": {
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
     "testRegex": "\\.test.(ts|tsx|js|jsx)$",
     "transform": {
       "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"

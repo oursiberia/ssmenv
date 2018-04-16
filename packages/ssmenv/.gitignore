@@ -1,14 +1,9 @@
-# oclif defaults
+# defaults
 *-debug.log
 *-error.log
-.oclif.manifest.json
 /lib
 /node_modules
-/tmp
 
 # Project specific
 .ssmenv
 .env.*
-
-# Ignore pkg output
-/dist
