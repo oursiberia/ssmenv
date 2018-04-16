@@ -52,8 +52,8 @@
   },
   "files": [
     ".oclif.manifest.json",
-    "/bin",
-    "/lib"
+    "bin",
+    "lib"
   ],
   "homepage": "https://github.com/oursiberia/ssmenv",
   "keywords": [
@@ -76,8 +76,8 @@
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
     "postpack": "rm -f .oclif.manifest.json",
     "posttest": "tsc -p . --noEmit && tslint -p . -t stylish",
-    "prepack": "rm -rf lib && tsc && oclif-dev manifest && oclif-dev readme",
-    "test": "jest --watch",
+    "prepublishOnly": "rm -rf lib && tsc && oclif-dev manifest && oclif-dev readme",
+    "test": "jest",
     "version": "oclif-dev readme && git add README.md"
   },
   "types": "lib/index.d.ts",

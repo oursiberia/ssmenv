@@ -37,7 +37,7 @@
     "node": ">=8.0.0"
   },
   "files": [
-    "/lib"
+    "lib"
   ],
   "homepage": "https://github.com/oursiberia/ssmenv",
   "keywords": [
@@ -50,7 +50,7 @@
   "scripts": {
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
     "posttest": "yarn run lint",
-    "prepack": "rm -rf lib && tsc",
+    "prepublishOnly": "rm -rf lib && tsc",
     "test": "jest"
   },
   "types": "lib/index.d.ts",
