@@ -10,22 +10,32 @@ jobs:
       - checkout
       - restore_cache: &restore_cache
           keys:
-            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "yarn.lock"}}
+            - v1-yarn-{{checksum ".circleci/config.yml"}}-{{ checksum "packages/ssmenv/yarn.lock"}}
             - v1-yarn-{{checksum ".circleci/config.yml"}}
-      - run: yarn
-      - run: ./bin/run --version
-      - run: ./bin/run --help
-      - run: mkdir -p reports/junit
+      - run:
+          command: yarn
+          working_directory: ~/cli/packages/ssmenv
+      - run:
+          command: ./bin/run --version
+          working_directory: ~/cli/packages/ssmenv
+      - run:
+          command: ./bin/run --help
+          working_directory: ~/cli/packages/ssmenv
+      - run:
+          command: mkdir -p reports/junit
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: "Linter"
           command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: "Test Suite"
           command: yarn jest --ci --testResultsProcessor="jest-junit"
+          working_directory: ~/cli/packages/ssmenv
           environment:
             JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
       - store_test_results: &store_test_results
-          path: reports/junit
+          path: packages/ssmenv/reports/junit
   node-8:
     <<: *test
     docker:
@@ -39,15 +49,17 @@ jobs:
       - run:
           name: Authenticate with registry
           command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/cli/.npmrc
+          working_directory: ~/cli/packages/ssmenv
       - run:
           name: Publish package
           command: |
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn publish --new-version="${VERSION}"
+          working_directory: ~/cli/packages/ssmenv
       - save_cache:
           key: v1-yarn-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
-            - ~/cli/node_modules
+            - ~/cli/packages/ssmenv/node_modules
             - /usr/local/share/.cache/yarn
             - /usr/local/share/.config/yarn
 
