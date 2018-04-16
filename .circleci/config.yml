@@ -118,18 +118,18 @@ jobs:
 
 workflows:
   version: 2
-  "ssmenv":
+  "ssm-environment":
     jobs:
-      - node-latest-env: &tag-filters
+      - node-latest-env: &tag_filters
           context: org-global
           filters:
             tags:
               only: /^v.*/
       - node-8-env:
-          <<: *tag-filters
+          <<: *tag_filters
       - release-env:
           context: org-global
-          filters: &tag-branch-filters
+          filters: &tag_branch_filters
             tags:
               only: /^v.*/
             branches:
@@ -137,14 +137,16 @@ workflows:
           requires:
             - node-latest-env
             - node-8-env
+  "ssmenv":
+    jobs:
       - node-latest-ssmenv:
-          <<: *tag-filters
+          <<: *tag_filters
       - node-8-ssmenv:
-          <<: *tag-filters
+          <<: *tag_filters
       - release-ssmenv:
           context: org-global
           filters:
-            <<: *tag-branch-filters
+            <<: *tag_branch_filters
           requires:
             - node-latest-ssmenv
             - node-8-ssmenv
