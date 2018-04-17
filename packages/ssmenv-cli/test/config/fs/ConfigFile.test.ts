@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 /// <reference types="node" />
 import { access, constants, unlink } from 'fs';
+import { resolve } from 'path';
 import {
   AwsConfig,
   AwsRequiredProperties,
@@ -12,10 +13,12 @@ import {
 } from '../../../src/config/ProjectConfig';
 import { ConfigValidationError } from '../../../src/errors/index';
 
+const FIXTURES = resolve(__dirname, '../../../', 'fixtures');
+
 describe('ConfigFile<ProjectConfig>', () => {
   describe('valid', () => {
     const file = new ConfigFile<ProjectConfig>(
-      'fixtures/project.json',
+      `${FIXTURES}/project.json`,
       ProjectRequiredProperties
     );
     const fileConfig = require('../../../fixtures/project.json');
@@ -47,7 +50,7 @@ describe('ConfigFile<ProjectConfig>', () => {
   });
   describe('no stages', () => {
     const file = new ConfigFile<ProjectConfig>(
-      'fixtures/project-nostages.json',
+      `${FIXTURES}/project-nostages.json`,
       ProjectRequiredProperties
     );
     const fileConfig = require('../../../fixtures/project-nostages.json');
@@ -84,7 +87,7 @@ describe('ConfigFile<ProjectConfig>', () => {
   });
   describe('no rootPath', () => {
     const file = new ConfigFile<ProjectConfig>(
-      'fixtures/project-noroot.json',
+      `${FIXTURES}/project-noroot.json`,
       ProjectRequiredProperties
     );
     const fileConfig = require('../../../fixtures/project-noroot.json');
@@ -120,7 +123,7 @@ describe('ConfigFile<ProjectConfig>', () => {
     });
   });
   describe('#write', () => {
-    const fixture = 'fixtures/project-write.json';
+    const fixture = `${FIXTURES}/project-write.json`;
     afterEach(done => {
       access(fixture, constants.W_OK, err => {
         if (err && err.code === 'ENOENT') {
@@ -164,7 +167,7 @@ describe('ConfigFile<ProjectConfig>', () => {
 describe('ConfigFile<AwsConfig>', () => {
   describe('valid', () => {
     const file = new ConfigFile<AwsConfig>(
-      'fixtures/aws.json',
+      `${FIXTURES}/aws.json`,
       AwsRequiredProperties
     );
     const fileConfig = require('../../../fixtures/aws.json');
@@ -196,7 +199,7 @@ describe('ConfigFile<AwsConfig>', () => {
   });
   describe('no secretAccessKey', () => {
     const file = new ConfigFile<AwsConfig>(
-      'fixtures/aws-nosecret.json',
+      `${FIXTURES}/aws-nosecret.json`,
       AwsRequiredProperties
     );
     const fileConfig = require('../../../fixtures/aws-nosecret.json');
@@ -233,7 +236,7 @@ describe('ConfigFile<AwsConfig>', () => {
   });
   describe('no accessKeyId', () => {
     const file = new ConfigFile<AwsConfig>(
-      'fixtures/aws-noaccess.json',
+      `${FIXTURES}/aws-noaccess.json`,
       AwsRequiredProperties
     );
     const fileConfig = require('../../../fixtures/aws-noaccess.json');
@@ -269,7 +272,7 @@ describe('ConfigFile<AwsConfig>', () => {
     });
   });
   describe('#write', () => {
-    const fixture = 'fixtures/aws-write.json';
+    const fixture = `${FIXTURES}/aws-write.json`;
     afterEach(done => {
       access(fixture, constants.W_OK, err => {
         if (err && err.code === 'ENOENT') {
