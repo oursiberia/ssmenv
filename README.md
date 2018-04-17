@@ -63,6 +63,8 @@ Releases are prepared manually on the `master` branch. After any changes have be
 1. A signed and annotated git tag is created for the new version. The tag
    comment should include the changes from `CHANGELOG.md` from all packages.
 
+An example of how this could work from the command line is given below:
+
     # Update package version
     export SSMENV_NEXT_VERSION=1.2.3
     for p in `ls packages`; do
