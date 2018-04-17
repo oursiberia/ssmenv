@@ -1,3 +1,9 @@
+# Node defaults
+/node_modules/
+
+# Yarn
+/yarn-*.log
+
 # Project specific
 .env.*
 .ssmenv/

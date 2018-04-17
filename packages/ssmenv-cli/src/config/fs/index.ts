@@ -1,9 +1,8 @@
 import { SSM } from 'aws-sdk';
 import { mkdir } from 'fs';
+import { AwsSsmProxy, Environment, EnvironmentOptions } from 'ssmenv';
 
 import { DEFAULT_CONFIG_PATH } from '../../constants';
-import { Environment, EnvironmentOptions } from '../../environment';
-import { AwsSsmProxy } from '../../environment/AwsSsmProxy';
 
 import { AwsConfig } from '../AwsConfig';
 import { FullConfig } from '../ConfigTypes';

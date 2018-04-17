@@ -1,8 +1,8 @@
 import { Command, flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 
 import { pushStage } from '../config/fs';
-import { Option } from '../environment';
 import { stageFlag, WithStageFlag } from '../flags/stage';
+import { Option } from '../Option';
 
 /**
  * A command that is executed for each stage passed as an argument in flags

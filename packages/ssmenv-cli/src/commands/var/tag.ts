@@ -1,10 +1,10 @@
 import { Command, flags } from '@oclif/command';
 import { args as Parser } from '@oclif/parser';
+import { EnvironmentVariable } from 'ssmenv';
 
 import { Key, keyPositional } from '../../arguments/key';
 import { StageActorCommand } from '../../command/StageActorCommand';
 import { getEnvironment } from '../../config/fs';
-import { EnvironmentVariable } from '../../environment';
 import { make as makeExample } from '../../example';
 import { stageFlag, WithStageFlag } from '../../flags/stage';
 import { tagFlag, WithTagFlag } from '../../flags/tag';

@@ -2,10 +2,10 @@ import { Command, flags } from '@oclif/command'; // tslint:disable-line no-unuse
 import { args as Parser } from '@oclif/parser';
 import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
+import { Environment } from 'ssmenv';
 
 import { readConfig, writeConfig } from '../config/fs';
 import { DEFAULT_CONFIG_PATH } from '../constants';
-import { Environment } from '../environment';
 import { make as makeExample } from '../example';
 import { quietFlag, WithQuietFlag } from '../flags/quiet';
 import { stageFlag, WithStageFlag } from '../flags/stage';
