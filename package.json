@@ -1,6 +1,19 @@
 {
   "private": true,
   "devDependencies": {
-    "lerna": "^2.10.1"
+    "babel-core": "6",
+    "babel-jest": "^22.4.3",
+    "jest": "^22.4.3",
+    "lerna": "^2.10.1",
+    "ts-jest": "^22.4.3",
+    "typescript": "^2.8.1"
+  },
+  "scripts": {
+    "test": "jest --watch"
+  },
+  "jest": {
+    "projects": [
+      "<rootDir>/packages/*"
+    ]
   }
 }
