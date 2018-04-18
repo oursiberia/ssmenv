@@ -7,34 +7,33 @@ type Nullable<T> = T | null;
 /** Parameterized type alias for a callback that receives an error or a result. */
 type CB<E extends Error, T> = (err: Nullable<E>, res: T) => void;
 
-jest.mock('aws-sdk', () => {
-  return {
-    SSM: jest.fn(() => {
-      return {
-        addTagsToResource: jest.fn(),
-        deleteParameters: jest.fn(
-          (req: { Names: string[] }, cb: CB<Error, object>) => {
-            const names = req.Names || [];
-            cb(null, { DeletedParameters: names });
-          }
-        ),
-        getParametersByPath: jest.fn((req: any, cb: CB<Error, object>) => {
-          cb(null, {
-            Parameters: [
-              {
-                Name: '/stage/foo',
-                Type: 'String',
-                Value: 'bar',
-                Version: 1,
-              },
-            ],
-          });
-        }),
-        putParameter: jest.fn(),
-      };
-    }),
-  };
-});
+/*
+ * Mock the specific functions we use on the prototype rather than creating a
+ * mock function with implementation. This is necessary because of the
+ * instanceof check used within AwsSsmProxy.
+ */
+SSM.prototype.addTagsToResource = jest.fn();
+SSM.prototype.deleteParameters = jest.fn(
+  (req: { Names: string[] }, cb: CB<Error, object>) => {
+    const names = req.Names || [];
+    cb(null, { DeletedParameters: names });
+  }
+);
+SSM.prototype.getParametersByPath = jest.fn(
+  (req: any, cb: CB<Error, object>) => {
+    cb(null, {
+      Parameters: [
+        {
+          Name: '/stage/foo',
+          Type: 'String',
+          Value: 'bar',
+          Version: 1,
+        },
+      ],
+    });
+  }
+);
+SSM.prototype.putParameter = jest.fn();
 
 describe(Environment.validatePathPart, () => {
   it('throws when key is undefined', () => {
