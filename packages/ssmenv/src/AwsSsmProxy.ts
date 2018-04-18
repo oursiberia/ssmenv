@@ -32,10 +32,11 @@ export class AwsSsmProxy {
 
   /**
    * Construct a proxy by using credentials or the configured instance.
-   * @param ssm to use when accessing AWS API or the configured `SSM`
+   * @param config to use when accessing AWS API or the configured `SSM`
    *    instance.
    */
-  constructor(ssm: SSM) {
+  constructor(config: SSM | Configuration) {
+    const ssm = config instanceof SSM ? config : new SSM(config);
     this.addTagsToResource = this.promisify(ssm.addTagsToResource.bind(ssm));
     this.deleteParameters = this.promisify(ssm.deleteParameters.bind(ssm));
     this.getParametersByPath = this.promisify(

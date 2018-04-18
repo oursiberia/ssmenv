@@ -10,7 +10,11 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 
 # _NEXT_
 
-No change. Keep version locked to `ssmenv-cli` package.
+## Added
+
+* `Environment` can be constructed with either an `AWS.SSM` instance or with a
+  configuration object. If given a configuration object `Environment` will use
+  it to create an `AWS.SSM` instance.
 
 # v0.5.5 (2018-04-16)
 
