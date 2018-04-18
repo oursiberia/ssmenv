@@ -1,4 +1,15 @@
 import { AWSError, SSM } from 'aws-sdk';
+import {
+  AddTagsOptions,
+  AddTagsResponse,
+  Configuration,
+  DeleteOptions,
+  DeleteResponse,
+  GetParametersOptions,
+  GetParametersResponse,
+  PutOptions,
+  PutResponse,
+} from './AwsSsmTypes';
 
 /** Type alias for `T` or `undefined`. */
 type Nullable<T> = T | null;
@@ -12,18 +23,12 @@ type Promisable<Req, Res> = (req: Req, callback: CB<AWSError, Res>) => void;
  * instances rather than following the callback pattern.
  */
 export class AwsSsmProxy {
-  addTagsToResource: (
-    request: SSM.AddTagsToResourceRequest
-  ) => Promise<SSM.AddTagsToResourceResult>;
-  deleteParameters: (
-    request: SSM.DeleteParametersRequest
-  ) => Promise<SSM.DeleteParametersResult>;
+  addTagsToResource: (request: AddTagsOptions) => Promise<AddTagsResponse>;
+  deleteParameters: (request: DeleteOptions) => Promise<DeleteResponse>;
   getParametersByPath: (
-    request: SSM.GetParametersByPathRequest
-  ) => Promise<SSM.GetParametersByPathResult>;
-  putParameter: (
-    request: SSM.PutParameterRequest
-  ) => Promise<SSM.PutParameterResult>;
+    request: GetParametersOptions
+  ) => Promise<GetParametersResponse>;
+  putParameter: (request: PutOptions) => Promise<PutResponse>;
 
   constructor(ssm: SSM) {
     this.addTagsToResource = this.promisify(ssm.addTagsToResource.bind(ssm));
