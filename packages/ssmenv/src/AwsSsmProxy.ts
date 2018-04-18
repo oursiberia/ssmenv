@@ -30,6 +30,11 @@ export class AwsSsmProxy {
   ) => Promise<GetParametersResponse>;
   putParameter: (request: PutOptions) => Promise<PutResponse>;
 
+  /**
+   * Construct a proxy by using credentials or the configured instance.
+   * @param ssm to use when accessing AWS API or the configured `SSM`
+   *    instance.
+   */
   constructor(ssm: SSM) {
     this.addTagsToResource = this.promisify(ssm.addTagsToResource.bind(ssm));
     this.deleteParameters = this.promisify(ssm.deleteParameters.bind(ssm));
@@ -39,6 +44,15 @@ export class AwsSsmProxy {
     this.putParameter = this.promisify(ssm.putParameter.bind(ssm));
   }
 
+  /**
+   * Convert a function that expects a callback into a function that returns
+   * a Promise.
+   * @param Req type accepted as an argument to the new function.
+   * @param Res type the new function's Promise will resolve to.
+   * @param fn to promisify.
+   * @param a function accepting a `Req` parameter and returning a
+   *    `Promise<Res>` result.
+   */
   private promisify<Req, Res>(fn: Promisable<Req, Res>) {
     return (request: Req) => {
       return new Promise<Res>((resolve, reject) => {
