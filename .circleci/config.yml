@@ -64,9 +64,11 @@ jobs:
       - restore_cache: &restore_cache_cli
           key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
       - run: *install_global
-      - run: *install_ssmenv
+      - run:
+          <<: *install_ssmenv
           working_directory: ~/cli/packages/ssmenv-cli
-      - run: *lerna_bootstrap
+      - run:
+          <<: *lerna_bootstrap
       - save_cache: *save_cache_global
       - save_cache: &save_cache_cli
           key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}-{{ .BuildNum }}
@@ -80,11 +82,14 @@ jobs:
       - run:
           command: ./bin/run --help
           working_directory: ~/cli/packages/ssmenv-cli
-      - run: *run_mkreports
+      - run:
+          <<: *run_mkreports
           working_directory: ~/cli/packages/ssmenv-cli
-      - run: *run_lint
+      - run:
+          <<: *run_lint
           working_directory: ~/cli/packages/ssmenv-cli
-      - run: *run_jest
+      - run:
+          <<: *run_jest
           working_directory: ~/cli/packages/ssmenv-cli
       - store_test_results:
           path: packages/ssmenv-cli/reports/junit
@@ -92,6 +97,38 @@ jobs:
     <<: *job_cli
     docker:
       - image: node:8
+  release:
+    <<: *job_env
+    docker:
+      - image: node:8
+    steps:
+      - add_ssh_keys
+      - checkout
+      - restore_cache: *restore_cache_global
+      - restore_cache: *restore_cache_cli
+      - run: *install_global
+      - run:
+          <<: *install_ssmenv
+          working_directory: ~/cli/packages/ssmenv
+      - run:
+          <<: *install_ssmenv
+          working_directory: ~/cli/packages/ssmenv-cli
+      - run:
+          name: Authenticate with registry
+          command: |
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+            cp .npmrc packages/ssmenv
+            cp .npmrc packages/ssmenv-cli
+      - run:
+          <<: *lerna_bootstrap
+      - run:
+          name: "Run Lerna Publish"
+          command: |
+            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
+            yarn lerna publish --repo-version="${VERSION}" --skip-git --yes
+          working_directory: ~/cli
+      - save_cache: *save_cache_global
+      - save_cache: *save_cache_cli
 
 workflows:
   version: 2
@@ -105,3 +142,15 @@ workflows:
       - node-latest-cli: *tag_filters
       - node-8-env: *tag_filters
       - node-8-cli: *tag_filters
+      - release:
+          context: org-global
+          filters: &tag_branch_filters
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - node-latest-env
+            - node-latest-cli
+            - node-8-env
+            - node-8-cli
