@@ -52,28 +52,6 @@ jobs:
     <<: *job_env
     docker:
       - image: node:8
-  release-env:
-    <<: *job_env
-    steps:
-      - add_ssh_keys
-      - checkout
-      - restore_cache: *restore_cache_global
-      - restore_cache: *restore_cache_env
-      - run: *install_global
-      - run: *install_ssmenv
-      - run: *lerna_bootstrap
-      - run: &run_auth
-          name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
-          working_directory: ~/cli/packages/ssmenv
-      - run: &run_publish
-          name: Publish package
-          command: |
-            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
-            yarn publish --new-version="${VERSION}"
-          working_directory: ~/cli/packages/ssmenv
-      - save_cache: *save_cache_global
-      - save_cache: *save_cache_env
   node-latest-cli: &job_cli
     docker:
       - image: node:latest
@@ -114,23 +92,6 @@ jobs:
     <<: *job_cli
     docker:
       - image: node:8
-  release-cli:
-    <<: *test_cli
-    steps:
-      - add_ssh_keys
-      - checkout
-      - restore_cache: *restore_cache_global
-      - restore_cache: *restore_cache_cli
-      - run: *install_global
-      - run: *install_ssmenv
-          working_directory: ~/cli/packages/ssmenv-cli
-      - run: *lerna_bootstrap
-      - run: *run_auth
-          working_directory: ~/cli/packages/ssmenv-cli
-      - run: *run_publish
-          working_directory: ~/cli/packages/ssmenv-cli
-      - save_cache: *save_cache_global
-      - save_cache: *save_cache_cli
 
 workflows:
   version: 2
@@ -141,24 +102,6 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - node-8-env: *tag_filters
-      - release-env:
-          context: org-global
-          filters: &tag_branch_filters
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-          requires:
-            - node-latest-env
-            - node-8-env
-  "ssmenv-cli":
-    jobs:
       - node-latest-cli: *tag_filters
+      - node-8-env: *tag_filters
       - node-8-cli: *tag_filters
-      - release-cli:
-          context: org-global
-          filters: *tag_branch_filters
-          requires:
-            - node-latest-cli
-            - node-8-cli
