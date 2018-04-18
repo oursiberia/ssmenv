@@ -1,7 +1,7 @@
 ---
 version: 2
 jobs:
-  node-latest-env: &test_env
+  node-latest-env: &job_env
     docker:
       - image: node:latest
     working_directory: ~/cli
@@ -49,11 +49,11 @@ jobs:
       - store_test_results:
           path: packages/ssmenv/reports/junit
   node-8-env:
-    <<: *test_env
+    <<: *job_env
     docker:
       - image: node:8
   release-env:
-    <<: *test_env
+    <<: *job_env
     steps:
       - add_ssh_keys
       - checkout
@@ -74,7 +74,7 @@ jobs:
           working_directory: ~/cli/packages/ssmenv
       - save_cache: *save_cache_global
       - save_cache: *save_cache_env
-  node-latest-cli: &test_cli
+  node-latest-cli: &job_cli
     docker:
       - image: node:latest
     working_directory: ~/cli
@@ -111,7 +111,7 @@ jobs:
       - store_test_results:
           path: packages/ssmenv-cli/reports/junit
   node-8-cli:
-    <<: *test_cli
+    <<: *job_cli
     docker:
       - image: node:8
   release-cli:
