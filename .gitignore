@@ -1,3 +1,6 @@
+# Lerna
+/lerna-*.log
+
 # Node defaults
 /node_modules/
 
