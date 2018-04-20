@@ -7,11 +7,10 @@ export interface Tag extends AWS.SSM.Tag {}
 /**
  * Validate `param` can be parsed into a `Tag`.
  * @param param to validate.
- * @param context ???
  * @returns `param` unmodified if it can be parsed.
  * @throws Error if it can't be parsed.
  */
-export function validateTag(param: string, context?: any) {
+export function validateTag(param: string) {
   const [key, value, ...rest] = param.split(':');
   if (rest.length !== 0) {
     throw new Error(`Too many parts divided by ':' in '${param}'.`);

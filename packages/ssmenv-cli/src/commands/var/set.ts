@@ -47,6 +47,7 @@ export class VarSet extends StageActorCommand<
       return environment.put(key, value, description);
     } catch (err) {
       this.error(`Failed to set value for '${key}' in stage, ${stage}.`);
+      return;
     }
   }
 }

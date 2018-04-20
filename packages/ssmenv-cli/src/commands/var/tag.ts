@@ -49,6 +49,7 @@ export class VarTag extends StageActorCommand<
       return environment.tag(key, tags);
     } catch (err) {
       this.error(`Failed to set tags for '${key}' in stage, ${stage}.`);
+      return;
     }
   }
 }

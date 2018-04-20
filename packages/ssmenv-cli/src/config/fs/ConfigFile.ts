@@ -2,9 +2,7 @@ import { readFile, writeFile } from 'fs';
 import { promisify } from 'util';
 
 import { ConfigValidationError } from '../../errors';
-import { AwsConfig, AwsRequiredProperties } from '../AwsConfig';
 import { AnyConfig, ConfigProperty } from '../ConfigTypes';
-import { ProjectConfig, ProjectRequiredProperties } from '../ProjectConfig';
 
 const reader = promisify(readFile);
 const writer = promisify(writeFile);

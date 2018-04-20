@@ -16,6 +16,10 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
   configuration object. If given a configuration object `Environment` will use
   it to create an `AWS.SSM` instance.
 
+## Fixed
+
+* Fixes linting errors revealed by stricter linting rules.
+
 # v0.5.5 (2018-04-16)
 
 Republish v0.5.0 but with the source files this time.

@@ -6,6 +6,9 @@
     "module": "commonjs",
     "pretty": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2017",
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   }
 }
