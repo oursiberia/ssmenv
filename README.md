@@ -27,10 +27,8 @@ environment variables by the `ssmenv` library.
 
 [Lerna][lerna] is used to bootstrap `ssmenv` into `ssmenv-cli` so the local
 version of `ssmenv` can be used in development of `ssmenv-cli`. The versions of
-`ssmenv` and `ssmenv-cli` have thus far been kept in sync for the sake of
-simplicity in tags but the `lerna` tool is not being used for releases and the
-only no enforcement for synced versions is the current setup of
-[CircleCI][circleci].
+`ssmenv` and `ssmenv-cli` are kept in sync for the sake of simplicity.
+[CircleCI][circleci] is using `lerna` to publish git tags to NPM.
 
 [lerna]: https://lernajs.io
 [circleci]: https://circleci.com/gh/oursiberia/ssmenv
@@ -41,7 +39,20 @@ Changelog][kac] style changelogs.
 
 [kac]: https://keepachangelog.com/en/1.0.0/
 
-## Tests
+[Yarn workspaces][workspaces] are used to manage dependencies across the
+packages. In order to set up for development execute `yarn` from the top level
+or 'workspace root' (that is the directory containing the `packages`
+directory).
+
+[workspaces]: https://yarnpkg.com/en/docs/workspaces
+
+### Prerequisite Software
+
+* [Node LTS](https://nodejs.org/)
+* [Watchman](https://facebook.github.io/watchman/)
+* [Yarn](https://yarnpkg.com/en/)
+
+### Tests
 
 Tests are executed using [jest][jest]. The root project has a `test` script
 used to execute the tests in watch mode. By default this only executes tests
