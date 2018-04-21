@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 import { args as Parser } from '@oclif/parser';
 import { EnvironmentVariable } from 'ssmenv';
 
