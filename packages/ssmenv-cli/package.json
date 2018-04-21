@@ -74,10 +74,10 @@
     "dist": "tsc && pkg --targets=node8-macos,node8-linux,node8-windows --out-path=dist .",
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
     "postpack": "rm -f .oclif.manifest.json",
-    "posttest": "tsc -p . --noEmit && tslint -p . -t stylish",
-    "prepublishOnly": "rm -rf lib && tsc && oclif-dev manifest && oclif-dev readme",
-    "test": "jest",
-    "version": "oclif-dev readme && git add README.md"
+    "prepare": "rm -rf lib && tsc && oclif-dev manifest && oclif-dev readme",
+    "pretest": "yarn run lint",
+    "test": "jest --ci",
+    "version": "oclif-dev readme"
   },
   "types": "lib/index.d.ts",
   "pkg": {

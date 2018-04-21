@@ -9,40 +9,30 @@ jobs:
     steps:
       - checkout
       # This works because "A key is searched against existing keys as a prefix."
-      - restore_cache: &restore_cache_global
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
-      - restore_cache: &restore_cache_env
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}
-      - run: &install_global
-          name: "Install global Dependencies"
+      - restore_cache: &restore_workspaces
+          key: v3-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+      - run: &install_workspaces
+          name: "Install Workspace Dependencies"
           command: yarn
-      - run: &install_ssmenv
-          name: "Install ssmenv Dependencies"
-          command: yarn
-          working_directory: ~/cli/packages/ssmenv
       - run: &lerna_bootstrap
           name: "Lerna Bootstrap"
-          command: yarn lerna bootstrap
-      - save_cache: &save_cache_global
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}-{{ .BuildNum }}
+          command: |
+            yarn lerna bootstrap
+            yarn lerna run prepare
+      - save_cache: &save_workspaces
+          key: v3-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}-{{ .BuildNum }}
           paths:
             - ~/cli/node_modules
+            - ~/cli/packages/ssmenv/node_modules
+            - ~/cli/packages/ssmenv-cli/node_modules
             - /usr/local/share/.cache/yarn
             - /usr/local/share/.config/yarn
-      - save_cache: &save_cache_env
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv/yarn.lock"}}-{{ .BuildNum }}
-          paths:
-            - ~/cli/packages/ssmenv/node_modules
       - run: &run_mkreports
           command: mkdir -p reports/junit
           working_directory: ~/cli/packages/ssmenv
-      - run: &run_lint
-          name: "Linter"
-          command: yarn tslint -p . -t stylish --format junit -o reports/junit/js-lint-results.xml
-          working_directory: ~/cli/packages/ssmenv
       - run: &run_jest
           name: "Test Suite"
-          command: yarn jest --ci --testResultsProcessor="jest-junit"
+          command: yarn run test --testResultsProcessor="jest-junit"
           working_directory: ~/cli/packages/ssmenv
           environment:
             JEST_JUNIT_OUTPUT: "reports/junit/js-test-results.xml"
@@ -60,22 +50,10 @@ jobs:
     steps:
       - checkout
       # This works because "A key is searched against existing keys as a prefix."
-      - restore_cache: *restore_cache_global
-      - restore_cache: &restore_cache_cli
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}
-      - run: *install_global
-      - run:
-          <<: *install_ssmenv
-          working_directory: ~/cli/packages/ssmenv-cli
-      - run:
-          <<: *lerna_bootstrap
-      - save_cache: *save_cache_global
-      - save_cache: &save_cache_cli
-          key: v2-{{checksum ".circleci/config.yml"}}-{{checksum "packages/ssmenv-cli/yarn.lock"}}-{{ .BuildNum }}
-          paths:
-            - ~/cli/packages/ssmenv-cli/node_modules
-            - /usr/local/share/.cache/yarn
-            - /usr/local/share/.config/yarn
+      - restore_cache: *restore_workspaces
+      - run: *install_workspaces
+      - run: *lerna_bootstrap
+      - save_cache: *save_workspaces
       - run:
           command: ./bin/run --version
           working_directory: ~/cli/packages/ssmenv-cli
@@ -84,9 +62,6 @@ jobs:
           working_directory: ~/cli/packages/ssmenv-cli
       - run:
           <<: *run_mkreports
-          working_directory: ~/cli/packages/ssmenv-cli
-      - run:
-          <<: *run_lint
           working_directory: ~/cli/packages/ssmenv-cli
       - run:
           <<: *run_jest
@@ -104,15 +79,9 @@ jobs:
     steps:
       - add_ssh_keys
       - checkout
-      - restore_cache: *restore_cache_global
-      - restore_cache: *restore_cache_cli
-      - run: *install_global
-      - run:
-          <<: *install_ssmenv
-          working_directory: ~/cli/packages/ssmenv
-      - run:
-          <<: *install_ssmenv
-          working_directory: ~/cli/packages/ssmenv-cli
+      - restore_cache: *restore_workspaces
+      - run: *install_workspaces
+      - run: *lerna_bootstrap
       - run:
           name: Authenticate with registry
           command: |
@@ -120,15 +89,11 @@ jobs:
             cp .npmrc packages/ssmenv
             cp .npmrc packages/ssmenv-cli
       - run:
-          <<: *lerna_bootstrap
-      - run:
           name: "Run Lerna Publish"
           command: |
             VERSION=$(echo $CIRCLE_TAG | cut -c2-)
             yarn lerna publish --repo-version="${VERSION}" --skip-git --yes
           working_directory: ~/cli
-      - save_cache: *save_cache_global
-      - save_cache: *save_cache_cli
 
 workflows:
   version: 2
