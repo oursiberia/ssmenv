@@ -24,6 +24,37 @@ const fqnRegex = new RegExp(`^/(${PART.source})(/${PART.source})*?$`);
  */
 export class Environment {
   /**
+   * List the all known stages or environments, ignoring any concept of a
+   * configured `rootPath`. A stage or environment is considered any path with a
+   * direct child path holding a value.
+   * @param ssm to use for accessing API.
+   * @returns a list of strings representing all the parameter store paths with
+   *    at least one child parameter.
+   */
+  static async listAll(ssm: SSM | SSMConfiguration) {
+    const instance = new AwsSsmProxy(ssm);
+    const request = {
+      Path: '/',
+      Recursive: true,
+    };
+    const results = await instance.getParametersByPath(request);
+    const parameters = results.Parameters || [];
+    return parameters
+      .map(param => {
+        const lastSlash = param.Name!.lastIndexOf('/');
+        return param.Name!.slice(0, lastSlash);
+      })
+      .reduce((paths: string[], next: string) => {
+        if (paths.includes(next)) {
+          return paths;
+        } else {
+          return [...paths, next];
+        }
+      }, [])
+      .sort();
+  }
+
+  /**
    * Checks if the given `key` is a valid parameter name.
    * @param name to use in error messages identifying the invalid thing.
    * @param key to check for validity.
