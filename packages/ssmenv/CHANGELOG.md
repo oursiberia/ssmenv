@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 
 * Export the `Configuration` type which provides is used to enable access to
   the API of the AWS SSM Parameter Store.
+* Export the `Tag` type which provides information about AWS tags attached to a
+  resource.
 * Add the static `Environment.listAll` method to retrieve an array of all the
   path names which could be used as Environments (because they have leaf
   nodes).
