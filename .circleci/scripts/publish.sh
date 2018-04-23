@@ -17,9 +17,18 @@ if [ "__${VERSION_SUFFIX}" == "__" ]; then
   # because it makes the publish command misbehave (as in not publish properly
   # but also not fail).
   NPM_TAG="latest"
-  yarn lerna publish --repo-version="${VERSION}" --skip-git --yes
+  yarn lerna publish \
+      --force-publish=* \
+      --repo-version="${VERSION}" \
+      --skip-git \
+      --yes
 else
   # Use the values extracted earlier to execute the publish command.
   NPM_TAG=${VERSION_SUFFIX}
-  yarn lerna publish --repo-version="${VERSION}" --skip-git --yes --npm-tag="${NPM_TAG}"
+  yarn lerna publish
+      --npm-tag="${NPM_TAG}" \
+      --force-publish=* \
+      --repo-version="${VERSION}" \
+      --skip-git \
+      --yes
 fi
