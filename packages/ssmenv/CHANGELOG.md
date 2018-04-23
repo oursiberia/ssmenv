@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
+# _NEXT_
+
+## Added
+
+* Export the `Configuration` type which provides is used to enable access to
+  the API of the AWS SSM Parameter Store.
+
 # v0.6.0 (2018-04-24)
 
 ## Added
