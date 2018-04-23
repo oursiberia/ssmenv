@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
+# _NEXT_
+
+## Changed
+
+* The `env:list` command now calls out to the `Environment` class rather than
+  getting an instance to access the AWS API directly.
+
 # v0.6.0 (2018-04-24)
 
 ## Added
