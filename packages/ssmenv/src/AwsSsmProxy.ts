@@ -1,4 +1,15 @@
 import { AWSError, SSM } from 'aws-sdk';
+import {
+  AddTagsOptions,
+  AddTagsResponse,
+  Configuration,
+  DeleteOptions,
+  DeleteResponse,
+  GetParametersOptions,
+  GetParametersResponse,
+  PutOptions,
+  PutResponse,
+} from './AwsSsmTypes';
 
 /** Type alias for `T` or `undefined`. */
 type Nullable<T> = T | null;
@@ -12,20 +23,20 @@ type Promisable<Req, Res> = (req: Req, callback: CB<AWSError, Res>) => void;
  * instances rather than following the callback pattern.
  */
 export class AwsSsmProxy {
-  addTagsToResource: (
-    request: SSM.AddTagsToResourceRequest
-  ) => Promise<SSM.AddTagsToResourceResult>;
-  deleteParameters: (
-    request: SSM.DeleteParametersRequest
-  ) => Promise<SSM.DeleteParametersResult>;
+  addTagsToResource: (request: AddTagsOptions) => Promise<AddTagsResponse>;
+  deleteParameters: (request: DeleteOptions) => Promise<DeleteResponse>;
   getParametersByPath: (
-    request: SSM.GetParametersByPathRequest
-  ) => Promise<SSM.GetParametersByPathResult>;
-  putParameter: (
-    request: SSM.PutParameterRequest
-  ) => Promise<SSM.PutParameterResult>;
+    request: GetParametersOptions
+  ) => Promise<GetParametersResponse>;
+  putParameter: (request: PutOptions) => Promise<PutResponse>;
 
-  constructor(ssm: SSM) {
+  /**
+   * Construct a proxy by using credentials or the configured instance.
+   * @param config to use when accessing AWS API or the configured `SSM`
+   *    instance.
+   */
+  constructor(config: SSM | Configuration) {
+    const ssm = config instanceof SSM ? config : new SSM(config);
     this.addTagsToResource = this.promisify(ssm.addTagsToResource.bind(ssm));
     this.deleteParameters = this.promisify(ssm.deleteParameters.bind(ssm));
     this.getParametersByPath = this.promisify(
@@ -34,6 +45,15 @@ export class AwsSsmProxy {
     this.putParameter = this.promisify(ssm.putParameter.bind(ssm));
   }
 
+  /**
+   * Convert a function that expects a callback into a function that returns
+   * a Promise.
+   * @param Req type accepted as an argument to the new function.
+   * @param Res type the new function's Promise will resolve to.
+   * @param fn to promisify.
+   * @param a function accepting a `Req` parameter and returning a
+   *    `Promise<Res>` result.
+   */
   private promisify<Req, Res>(fn: Promisable<Req, Res>) {
     return (request: Req) => {
       return new Promise<Res>((resolve, reject) => {

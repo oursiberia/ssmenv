@@ -2,6 +2,7 @@ import { SSM } from 'aws-sdk';
 import * as LRU from 'lru-cache';
 
 import { AwsSsmProxy } from './AwsSsmProxy';
+import { Configuration as SSMConfiguration } from './AwsSsmTypes';
 import { EnvironmentOptions } from './EnvironmentOptions';
 import { EnvironmentVariable } from './EnvironmentVariable';
 import { Tag } from './Tag';
@@ -89,7 +90,11 @@ export class Environment {
    * @param ssm to use for retrieving parameters.
    * @param options for requesting parameters.
    */
-  constructor(fqnPrefix: string, ssm: SSM, options: EnvironmentOptions = {}) {
+  constructor(
+    fqnPrefix: string,
+    ssm: SSM | SSMConfiguration,
+    options: EnvironmentOptions = {}
+  ) {
     this.validateFqn(fqnPrefix);
     this.cache = LRU({ maxAge: 1000 * 60 * 60 * 24 });
     this.fqnPrefix = fqnPrefix;

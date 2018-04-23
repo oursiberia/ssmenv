@@ -49,9 +49,9 @@
   "repository": "oursiberia/ssmenv",
   "scripts": {
     "lint": "tsc -p . --noEmit && tslint -p . -t stylish",
-    "posttest": "yarn run lint",
-    "prepublishOnly": "rm -rf lib && tsc",
-    "test": "jest"
+    "prepare": "rm -rf lib && tsc",
+    "pretest": "yarn run lint",
+    "test": "jest --ci"
   },
   "types": "lib/index.d.ts",
   "jest": {

@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 import { args as Parser } from '@oclif/parser';
 import { EnvironmentVariable } from 'ssmenv';
 
@@ -47,6 +47,7 @@ export class VarSet extends StageActorCommand<
       return environment.put(key, value, description);
     } catch (err) {
       this.error(`Failed to set value for '${key}' in stage, ${stage}.`);
+      return;
     }
   }
 }

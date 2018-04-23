@@ -1,4 +1,4 @@
-import { Command, flags } from '@oclif/command';
+import { flags } from '@oclif/command'; // tslint:disable-line no-unused-variable
 import { args as Parser } from '@oclif/parser';
 
 import { Key, keyPositional } from '../../arguments/key';
@@ -29,13 +29,15 @@ export default class VarDel extends StageActorCommand<Args, Flags, boolean> {
 
   static args: Parser.IArg[] = [keyPositional];
 
-  async runOnStage(stage: string, args: Args, flags: Flags) {
+  // tslint:disable-next-line variable-name
+  async runOnStage(stage: string, args: Args, _flags: Flags) {
     const { key } = args;
     try {
       const environment = await getEnvironment(stage);
       return await environment.del(key);
     } catch (err) {
       this.error(`Failed to set value for '${key}' in stage, ${stage}.`);
+      return;
     }
   }
 }
