@@ -90,9 +90,7 @@ jobs:
             cp .npmrc packages/ssmenv-cli
       - run:
           name: "Run Lerna Publish"
-          command: |
-            VERSION=$(echo $CIRCLE_TAG | cut -c2-)
-            yarn lerna publish --repo-version="${VERSION}" --skip-git --yes
+          command: ./.circleci/scripts/publish.sh
           working_directory: ~/cli
 
 workflows:
