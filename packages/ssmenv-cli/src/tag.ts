@@ -1,8 +1,4 @@
-/* tslint:disable no-empty-interface */
-import * as AWS from 'aws-sdk';
-
-/** Alias for `AWS.SSM.Tag`. */
-export interface Tag extends AWS.SSM.Tag {}
+import { Tag } from 'ssmenv';
 
 /**
  * Validate `param` can be parsed into a `Tag`.
