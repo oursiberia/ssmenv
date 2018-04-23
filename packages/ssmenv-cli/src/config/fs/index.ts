@@ -1,11 +1,5 @@
-import { SSM } from 'aws-sdk';
 import { mkdir } from 'fs';
-import {
-  AwsSsmProxy,
-  Configuration,
-  Environment,
-  EnvironmentOptions,
-} from 'ssmenv';
+import { Configuration, Environment, EnvironmentOptions } from 'ssmenv';
 
 import { DEFAULT_CONFIG_PATH } from '../../constants';
 
@@ -43,19 +37,6 @@ function ensureConfigDirectory(pathToConfig: string) {
       }
     });
   });
-}
-
-/**
- * Get direct access to `SSM` using the configuration written at `pathToConfig`.
- * @param options indicating filesystem paths where the configuration will be
- *    read.
- * @return an initialized `AWS.SSM` instance.
- */
-export async function getDirectEnvironment(options: ConfigOptions = {}) {
-  const { awsConfigFileName, pathToConfig } = options;
-  const awsConfig = await getAwsConfig(pathToConfig, awsConfigFileName).read();
-  const ssm = getSSM(awsConfig);
-  return new AwsSsmProxy(ssm);
 }
 
 /**

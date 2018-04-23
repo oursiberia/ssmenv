@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 * The `env:list` command now calls out to the `Environment` class rather than
   getting an instance to access the AWS API directly.
 
+## Removed
+
+* Drop the `getDirectEnvironment` method. This function was only exported
+  internally.
+
 # v0.6.0 (2018-04-24)
 
 ## Added

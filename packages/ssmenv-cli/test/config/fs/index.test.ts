@@ -3,11 +3,7 @@
 import { resolve } from 'path';
 import { AwsSsmProxy, Environment } from 'ssmenv';
 import { AwsRequiredProperties } from '../../../src/config/AwsConfig';
-import {
-  getDirectEnvironment,
-  getEnvironment,
-  readConfig,
-} from '../../../src/config/fs/index';
+import { getEnvironment, readConfig } from '../../../src/config/fs/index';
 import { ProjectRequiredProperties } from '../../../src/config/ProjectConfig';
 
 jest.mock('aws-sdk', () => {
@@ -27,17 +23,6 @@ const PROJECT_ROOT = resolve(__dirname, '../../../');
 
 const validConfigPath = { pathToConfig: resolve(PROJECT_ROOT, 'fixtures') };
 const invalidConfigPath = { pathToConfig: resolve(PROJECT_ROOT, 'nofixtures') };
-
-describe(getDirectEnvironment, () => {
-  it('gets an instance with valid path', async () => {
-    const ssm = await getDirectEnvironment(validConfigPath);
-    expect(ssm).toBeInstanceOf(AwsSsmProxy);
-  });
-  it('throws an error with invalid path', async () => {
-    expect.assertions(1);
-    await expect(getDirectEnvironment(invalidConfigPath)).rejects.toBeDefined();
-  });
-});
 
 describe(getEnvironment, () => {
   it('gets an instance with a valid path', async () => {
