@@ -1,7 +1,7 @@
 {
   "name": "ssmenv",
   "description": "Read and write environment variables stored within AWS SSM.",
-  "version": "0.6.1",
+  "version": "0.6.2-0",
   "author": "Siberia <dev@siberia.io>",
   "contributors": [
     "Bryan Swift <bryan@siberia.io>"
