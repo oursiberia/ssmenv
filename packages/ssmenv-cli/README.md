@@ -18,7 +18,7 @@ $ npm install -g ssmenv-cli
 $ ssmenv COMMAND
 running command...
 $ ssmenv (-v|--version|version)
-ssmenv-cli/0.6.0 darwin-x64 node-v9.11.1
+ssmenv-cli/0.6.1 darwin-x64 node-v9.11.1
 $ ssmenv --help [COMMAND]
 USAGE
   $ ssmenv COMMAND
@@ -76,7 +76,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/env.ts)_
+_See code: [src/commands/env.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/env.ts)_
 
 ## `ssmenv env:dotenv STAGE`
 
@@ -102,7 +102,7 @@ EXAMPLES
   $ ssmenv env:dotenv test > .env.test
 ```
 
-_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/env/dotenv.ts)_
+_See code: [src/commands/env/dotenv.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/env/dotenv.ts)_
 
 ## `ssmenv env:list`
 
@@ -125,7 +125,7 @@ EXAMPLE
   /otherproject/dev
 ```
 
-_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/env/list.ts)_
+_See code: [src/commands/env/list.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/env/list.ts)_
 
 ## `ssmenv help [COMMAND]`
 
@@ -180,7 +180,7 @@ EXAMPLES
   * Recommend ignoring .ssmenv/private.json in source control.
 ```
 
-_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/init.ts)_
+_See code: [src/commands/init.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/init.ts)_
 
 ## `ssmenv var KEY VALUE`
 
@@ -206,7 +206,7 @@ EXAMPLES
   $ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"
 ```
 
-_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/var.ts)_
+_See code: [src/commands/var.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/var.ts)_
 
 ## `ssmenv var:del KEY`
 
@@ -227,7 +227,7 @@ EXAMPLE
   $ ssmenv var:del --stage=test FOO
 ```
 
-_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/var/del.ts)_
+_See code: [src/commands/var/del.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/var/del.ts)_
 
 ## `ssmenv var:set KEY VALUE`
 
@@ -253,7 +253,7 @@ EXAMPLES
   $ ssmenv var:set --stage=staging FOO "bar baz" --description="A description of FOO"
 ```
 
-_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/var/set.ts)_
+_See code: [src/commands/var/set.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/var/set.ts)_
 
 ## `ssmenv var:tag KEY`
 
@@ -278,5 +278,5 @@ EXAMPLES
   $ ssmenv var:set staging FOO --tag=Client:baz --tag=Environment:staging
 ```
 
-_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.0/src/commands/var/tag.ts)_
+_See code: [src/commands/var/tag.ts](https://github.com/oursiberia/ssmenv/blob/v0.6.1/src/commands/var/tag.ts)_
 <!-- commandsstop -->

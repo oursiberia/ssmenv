@@ -1,7 +1,7 @@
 {
   "name": "ssmenv-cli",
   "description": "Manage environment variables with AWS SSM.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "author": "Siberia <dev@siberia.io>",
   "contributors": [
     "Bryan Swift <bryan@siberia.io>"
@@ -20,7 +20,7 @@
     "@oclif/plugin-help": "^1.2.2",
     "chalk": "^2.3.2",
     "inquirer": "^5.2.0",
-    "ssmenv": "0.6.0"
+    "ssmenv": "0.6.1"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.4.4",
