@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 * Drop the `getDirectEnvironment` method. This function was only exported
   internally.
 
-# v0.6.0 (2018-04-24)
+# v0.6.0 (2018-04-23)
 
 ## Added
 

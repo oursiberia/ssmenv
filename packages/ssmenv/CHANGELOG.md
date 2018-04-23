@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
   path names which could be used as Environments (because they have leaf
   nodes).
 
-# v0.6.0 (2018-04-24)
+# v0.6.0 (2018-04-23)
 
 ## Added
 
