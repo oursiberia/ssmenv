@@ -1,6 +1,11 @@
 import { SSM } from 'aws-sdk';
 import { mkdir } from 'fs';
-import { AwsSsmProxy, Environment, EnvironmentOptions } from 'ssmenv';
+import {
+  AwsSsmProxy,
+  Configuration,
+  Environment,
+  EnvironmentOptions,
+} from 'ssmenv';
 
 import { DEFAULT_CONFIG_PATH } from '../../constants';
 
@@ -80,13 +85,13 @@ export async function getEnvironment(
  * @param config with API info.
  * @returns the initialized `AWS.SSM` instance ready to make requests.
  */
-function getSSM(config: AwsConfig): SSM {
-  return new SSM({
+function getSSM(config: AwsConfig): Configuration {
+  return {
     accessKeyId: config.accessKeyId,
     apiVersion: '2014-11-06',
     region: 'us-east-1',
     secretAccessKey: config.secretAccessKey,
-  });
+  };
 }
 
 /**
