@@ -32,13 +32,7 @@ export class Environment {
    *    at least one child parameter.
    */
   static async listAll(ssm: SSM | SSMConfiguration) {
-    const instance = new AwsSsmProxy(ssm);
-    const request = {
-      Path: '/',
-      Recursive: true,
-    };
-    const results = await instance.getParametersByPath(request);
-    const parameters = results.Parameters || [];
+    const parameters = await Environment.fetch('/', ssm);
     return parameters
       .map(param => {
         const lastSlash = param.Name!.lastIndexOf('/');
@@ -98,6 +92,40 @@ export class Environment {
       keys.forEach(key => {
         Environment.validatePathPart('Path part', key);
       });
+    }
+  }
+
+  /**
+   * Asynchronously fetches all the parameter values, recursively traversing the
+   * parameter tree for the given path.
+   * @param path to use as the root node when searching for parameters.
+   * @param ssm instance or configuration to use for accessing the API.
+   * @param options to use when requesting parameters.
+   * @param next token to use during recursive calls in order to get the next
+   *    page of results.
+   * @returns the array of `SSM.Parameter` values found when using the
+   *    `path` as the root.
+   */
+  private static async fetch(
+    path: string,
+    ssm: SSM | SSMConfiguration | AwsSsmProxy,
+    options: EnvironmentOptions = {},
+    next?: string
+  ): Promise<Parameter[]> {
+    const instance = ssm instanceof AwsSsmProxy ? ssm : new AwsSsmProxy(ssm);
+    const request: SSM.GetParametersByPathRequest = {
+      NextToken: next,
+      Path: path,
+      Recursive: true,
+    };
+    const result = await instance.getParametersByPath(request);
+    const parameters: SSM.Parameter[] = result.Parameters || [];
+    if (result.NextToken === undefined) {
+      return parameters;
+    } else {
+      return parameters.concat(
+        await Environment.fetch(path, ssm, options, result.NextToken)
+      );
     }
   }
 
@@ -284,13 +312,7 @@ export class Environment {
    *    `fqnPrefix` as a path.
    */
   private async fetch(): Promise<Parameter[]> {
-    const options: SSM.GetParametersByPathRequest = {
-      Path: `${this.fqnPrefix}`,
-      Recursive: true,
-      WithDecryption: this.options.withDecryption,
-    };
-    const result = await this.ssm.getParametersByPath(options);
-    return result.Parameters || [];
+    return Environment.fetch(this.fqnPrefix, this.ssm, this.options);
   }
 
   /**

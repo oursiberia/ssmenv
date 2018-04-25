@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
+# _NEXT_
+
+## Fixed
+
+* Fixes an issue where only the first ten (10) parameters were retrieved by
+  `Environment`.
+
 # v0.6.2 (2018-04-23)
 
 Republish v0.6.1 but automatically.
