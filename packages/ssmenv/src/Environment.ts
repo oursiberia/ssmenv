@@ -32,13 +32,7 @@ export class Environment {
    *    at least one child parameter.
    */
   static async listAll(ssm: SSM | SSMConfiguration) {
-    const instance = new AwsSsmProxy(ssm);
-    const request = {
-      Path: '/',
-      Recursive: true,
-    };
-    const results = await instance.getParametersByPath(request);
-    const parameters = results.Parameters || [];
+    const parameters = await Environment.fetch('/', ssm);
     return parameters
       .map(param => {
         const lastSlash = param.Name!.lastIndexOf('/');
@@ -318,13 +312,7 @@ export class Environment {
    *    `fqnPrefix` as a path.
    */
   private async fetch(): Promise<Parameter[]> {
-    const options: SSM.GetParametersByPathRequest = {
-      Path: `${this.fqnPrefix}`,
-      Recursive: true,
-      WithDecryption: this.options.withDecryption,
-    };
-    const result = await this.ssm.getParametersByPath(options);
-    return result.Parameters || [];
+    return Environment.fetch(this.fqnPrefix, this.ssm, this.options);
   }
 
   /**
