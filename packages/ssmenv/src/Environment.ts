@@ -101,6 +101,40 @@ export class Environment {
     }
   }
 
+  /**
+   * Asynchronously fetches all the parameter values, recursively traversing the
+   * parameter tree for the given path.
+   * @param path to use as the root node when searching for parameters.
+   * @param ssm instance or configuration to use for accessing the API.
+   * @param options to use when requesting parameters.
+   * @param next token to use during recursive calls in order to get the next
+   *    page of results.
+   * @returns the array of `SSM.Parameter` values found when using the
+   *    `path` as the root.
+   */
+  private static async fetch(
+    path: string,
+    ssm: SSM | SSMConfiguration | AwsSsmProxy,
+    options: EnvironmentOptions = {},
+    next?: string
+  ): Promise<Parameter[]> {
+    const instance = ssm instanceof AwsSsmProxy ? ssm : new AwsSsmProxy(ssm);
+    const request: SSM.GetParametersByPathRequest = {
+      NextToken: next,
+      Path: path,
+      Recursive: true,
+    };
+    const result = await instance.getParametersByPath(request);
+    const parameters: SSM.Parameter[] = result.Parameters || [];
+    if (result.NextToken === undefined) {
+      return parameters;
+    } else {
+      return parameters.concat(
+        await Environment.fetch(path, ssm, options, result.NextToken)
+      );
+    }
+  }
+
   /** Whether or not the initial load from AWS was successfully completed. */
   isReady: Promise<boolean>;
   /** The LRU cache used for expiring values. */
