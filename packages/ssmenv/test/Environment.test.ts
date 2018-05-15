@@ -76,6 +76,9 @@ describe(Environment.validatePathPart, () => {
       expect(err).toBeDefined();
     }
   });
+  it('handles uppercase keys', () => {
+    expect(Environment.validatePathPart('Key', 'BAMBOO_TOKEN')).toBeUndefined();
+  });
 });
 
 describe(Environment.validateRootPath, () => {
