@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { prompt, Question } from 'inquirer';
 import { Environment } from 'ssmenv';
 
+import { FullConfig } from '../config/ConfigTypes';
 import { readConfig, writeConfig } from '../config/fs';
 import { DEFAULT_CONFIG_PATH } from '../constants';
 import { make as makeExample } from '../example';
@@ -145,6 +146,25 @@ export class Init extends Command {
   }
 
   /**
+   * Reads the current configuration. If the current configuration doesn't
+   * exist (e.g. running in a directory for the first time) returns an empty
+   * configuration.
+   * @param pathToConfig the directory from which config will be read.
+   * @returns a `Partial<FullConfig>` from reading the given path.
+   */
+  static async readCurrentConfig(
+    pathToConfig = DEFAULT_CONFIG_PATH
+  ): Promise<Partial<FullConfig>> {
+    return readConfig({ pathToConfig }).catch(err => {
+      if (err && (err.code === 'ENOENT' || err.code === 'EEXIST')) {
+        return {};
+      } else {
+        throw err;
+      }
+    });
+  }
+
+  /**
    * Create default values for Questions based on current configuration, given
    * `args` and given `flags`.
    * @param args parsed for to the current execution.
@@ -155,9 +175,7 @@ export class Init extends Command {
     args: Args,
     flags: Flags
   ): Promise<Partial<Answers>> {
-    const currentConfig = await readConfig({
-      pathToConfig: DEFAULT_CONFIG_PATH,
-    });
+    const currentConfig = await Init.readCurrentConfig();
     return {
       awsAccess: args.awsAccess || currentConfig.accessKeyId,
       awsSecret: args.awsSecret || currentConfig.secretAccessKey,

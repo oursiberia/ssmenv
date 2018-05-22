@@ -1,5 +1,6 @@
 /// <reference types="jest" />
 import { IConfig } from '@oclif/config';
+import { resolve } from 'path';
 import { Init } from '../../src/commands/init';
 
 describe(Init.isValidPathPart, () => {
@@ -61,5 +62,18 @@ describe(Init.isValidRootPath, () => {
   });
   it('returns error if input does not have intermediate keys', () => {
     expect(Init.isValidRootPath('//')).toMatch('not have empty intermediate');
+  });
+});
+
+describe(Init.readCurrentConfig, () => {
+  const FIXTURES = resolve(__dirname, '../../', 'fixtures');
+  const NO_FIXTURES = resolve(__dirname, '../../', 'no_fixtures');
+  it('returns a config if the path does exist', async () => {
+    const config = await Init.readCurrentConfig(FIXTURES);
+    expect(Object.keys(config)).toHaveLength(4);
+  });
+  it('returns an empty config if path does not exist', async () => {
+    const config = await Init.readCurrentConfig(NO_FIXTURES);
+    expect(Object.keys(config)).toHaveLength(0);
   });
 });
