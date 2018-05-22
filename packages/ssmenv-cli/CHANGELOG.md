@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog][kac] and this project adheres to
 [kac]: http://keepachangelog.com/en/1.0.0/
 [semver]: http://semver.org/spec/v2.0.0.html
 
+# _NEXT_
+
+## Fixed
+
+* `init` will no longer fail when in a directory without a `.ssmenv` directory.
+
 # v0.6.3 (2018-04-25)
 
 Upgrade `ssmenv` to v0.6.3.
